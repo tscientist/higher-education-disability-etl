@@ -2,230 +2,158 @@
 
 ETL pipeline for analyzing the distribution of students with disabilities in Brazilian higher education, integrating Higher Education Census and SISU data into MongoDB.
 
-## Project Structure
+## Data Preparation Overview
 
-```
-brazil-higher-education-disability-etl/
-├── src/
-│   ├── clients/                 # External service clients
-│   │   ├── bigquery_client.py  # BigQuery client
-│   │   └── mongodb_client.py   # MongoDB client
-│   ├── config/                  # Configuration module
-│   │   └── config.py           # Environment and settings
-│   ├── etl/                     # ETL pipeline
-│   │   └── pipeline.py         # Main ETL logic
-│   └── utils/                   # Utilities
-│       ├── logger.py           # Logging configuration
-│       └── __init__.py
-├── tests/                       # Test suite
-│   └── test_etl.py            # ETL tests
-├── logs/                        # Application logs
-├── .env                         # Environment variables (not in git)
-├── .gitignore                   # Git ignore rules
-├── requirements.txt             # Python dependencies
-├── main.py                      # Application entry point
-├── pyproject.toml              # Project metadata
-└── README.md                    # This file
+Before running the ETL pipeline, the raw Higher Education Census microdata files must be prepared and loaded into BigQuery.
+
+The current data preparation flow is:
+
+```text
+INEP CSV files → Parquet files → Google Cloud Storage → BigQuery → MongoDB
 ```
 
-## Getting Started
+The conversion from CSV to Parquet is performed by a local Python script. The upload to Google Cloud Storage is currently a manual step performed through the Google Cloud CLI.
 
-### Prerequisites
-- Python 3.9+
-- Google Cloud Project with BigQuery enabled
-- MongoDB instance (local or cloud)
-- Service account credentials from GCP
+## Preparing INEP Microdata
 
-### Installation
+The Higher Education Census microdata files are originally provided by INEP in CSV format. Before loading them into BigQuery, the files must be converted to Parquet.
 
-1. **Clone the repository**
-```bash
-git clone <repository-url>
-cd brazil-higher-education-disability-etl
-```
-
-2. **Create virtual environment**
-```bash
-python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
-
-3. **Install dependencies**
-```bash
-pip install -r requirements.txt
-```
-
-4. **Configure environment variables**
-Create a `.env` file in the root directory:
-```env
-GCP_PROJECT_ID=your-gcp-project-id
-GCP_CREDENTIALS_PATH=path/to/credentials.json
-MONGO_URI=mongodb://localhost:27017
-MONGO_DATABASE=higher_education
-MONGO_COLLECTION=students
-BIGQUERY_DATASET=your_dataset
-BIGQUERY_TABLE=your_table
-```
-
-5. **Add Google Cloud credentials**
-Place your service account JSON file (named `credentials.json`) in the root directory.
-
-> **Security Note**: Add `credentials.json` to `.gitignore` - never commit credentials!
-
-## Running the ETL
-
-### Quick Start
-
-1. **Ensure your `.env` file is configured** with all required variables
-2. **Ensure MongoDB is running** (if using local instance)
-3. **Run the ETL pipeline**:
+Place the original INEP CSV files inside:
 
 ```bash
-python main.py
+data/raw/
 ```
 
-The pipeline will:
-1. Extract data from BigQuery using your service account credentials
-2. Transform the data (customize logic in `src/etl/pipeline.py`)
-3. Load the data into MongoDB
-4. Log all operations to `logs/etl_YYYYMMDD_HHMMSS.log`
-
-### Output Example
-
-```
-2026-06-22 10:30:45,123 - src.utils.logger - INFO - Iniciando ETL pipeline...
-2026-06-22 10:30:46,456 - src.etl.pipeline - INFO - Executando query: SELECT * FROM `dataset.table`
-2026-06-22 10:30:50,789 - src.etl.pipeline - INFO - Dados extraídos: 1500 registros
-2026-06-22 10:30:51,012 - src.etl.pipeline - INFO - Transformando dados...
-2026-06-22 10:30:52,345 - src.etl.pipeline - INFO - Dados carregados: 1500 documentos inseridos
-2026-06-22 10:30:52,567 - src.etl.pipeline - INFO - Pipeline finalizado com sucesso
-```
-
-### Troubleshooting
-
-#### BigQuery Authentication Error
-- Ensure `credentials.json` exists in the project root
-- Verify the file path in `.env` matches the actual location
-- Check that the service account has BigQuery permissions
-
-#### MongoDB Connection Error
-- Verify MongoDB is running: `mongosh` (or `mongo` for older versions)
-- Check the `MONGO_URI` in `.env` matches your MongoDB instance
-- Ensure network access to MongoDB (if using cloud instance)
-
-#### Missing Environment Variables
-- Verify all variables in `.env` are set
-- Run `echo $VARIABLE_NAME` to check if variables are loaded
-- Reload your shell: `source venv/bin/activate`
-
-## Project Features
-
-- Extracts data from BigQuery using service account authentication
-- Transforms data with customizable logic
-- Loads data into MongoDB
-- Comprehensive logging
-- Error handling and recovery
-- Professional project structure
-- Type hints and code quality tools
-
-## Running Tests
-
-### Run all tests with coverage
+Expected files:
 
 ```bash
-# Using pytest directly
-python -m pytest tests/ -v --cov=src
-
-# Or using tasks helper
-python tasks.py tests
+data/raw/microdados_ed_sup_ies_2024.csv
+data/raw/microdados_cadastro_cursos_2024.csv
 ```
 
-### Run specific test file
+Run the conversion script:
 
 ```bash
-python -m pytest tests/test_etl.py -v
+python scripts/convert_to_parquet.py
 ```
 
-### Run with coverage report in HTML
+The generated Parquet files will be saved in:
 
 ```bash
-python -m pytest tests/ --cov=src --cov-report=html
-# Open htmlcov/index.html in your browser
+data/parquet/
 ```
 
-## Development Tools
-
-### Code Formatting
+Expected output:
 
 ```bash
-# Format code with black and isort
-python tasks.py format
-
-# Or individually:
-python -m black src/ tests/ main.py
-python -m isort src/ tests/ main.py
+data/parquet/microdados_ed_sup_ies_2024.parquet
+data/parquet/microdados_cadastro_cursos_2024.parquet
 ```
 
-### Code Quality Checks
+The conversion script requires:
 
 ```bash
-# Run linting
-python tasks.py lint
-
-# Or individually:
-python -m flake8 src/ tests/ main.py
+pandas
+pyarrow
 ```
 
-### Type Checking
+If needed, install them with:
 
 ```bash
-# Check type hints
-python tasks.py type-check
-
-# Or individually:
-python -m mypy src/
+python -m pip install pandas pyarrow
 ```
 
-### Run all quality checks
+## Uploading Parquet Files to Google Cloud Storage
+
+After generating the Parquet files, they must be uploaded to Google Cloud Storage.
+
+At this stage of the project, the upload process is manual and performed through the Google Cloud CLI.
+
+### 1. Authenticate with Google Cloud
 
 ```bash
-python tasks.py format && python tasks.py lint && python tasks.py type-check
+gcloud auth login
 ```
 
-## Logging
+### 2. Select the GCP project
 
-Logs are stored in the `logs/` directory with timestamps. Check log files for detailed execution information.
+```bash
+gcloud config set project YOUR_GCP_PROJECT_ID
+```
 
-## Configuration
+Confirm the active configuration:
 
-Edit `src/config/config.py` or set environment variables to customize:
-- BigQuery connection details
-- MongoDB connection URI
-- Database and collection names
-- GCP project settings
+```bash
+gcloud config list
+```
 
-## Dependencies
+### 3. Define the bucket and destination path
 
-### Production
-- `google-cloud-bigquery==3.14.1` - BigQuery client
-- `pymongo==4.6.0` - MongoDB driver
-- `python-dotenv==1.0.0` - Environment variable management
+Replace the bucket name with the bucket used by the project:
 
-### Development
-- `pytest` - Testing framework
-- `black` - Code formatter
-- `flake8` - Linter
-- `isort` - Import sorter
-- `mypy` - Type checker
+```bash
+export BUCKET_NAME="your-bucket-name"
+export GCS_PATH="microdados/educacao_superior/2024/parquet"
+```
 
-## License
+The final destination will be:
 
-This project is licensed under the MIT License.
+```bash
+gs://your-bucket-name/microdados/educacao_superior/2024/parquet/
+```
 
-## Contributing
+### 4. Upload the generated Parquet files
 
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
+```bash
+gcloud storage cp data/parquet/*.parquet gs://$BUCKET_NAME/$GCS_PATH/
+```
+
+### 5. Validate the uploaded files
+
+```bash
+gcloud storage ls gs://$BUCKET_NAME/$GCS_PATH/
+```
+
+Expected result:
+
+```bash
+gs://your-bucket-name/microdados/educacao_superior/2024/parquet/microdados_ed_sup_ies_2024.parquet
+gs://your-bucket-name/microdados/educacao_superior/2024/parquet/microdados_cadastro_cursos_2024.parquet
+```
+
+### Notes
+
+* The Cloud Storage bucket location must be compatible with the BigQuery dataset location.
+* The upload step is currently manual and must be executed after generating the Parquet files.
+* Future versions of this project may automate the upload process directly from the ETL pipeline.
+
+## Loading Parquet Files into BigQuery
+
+After the files are uploaded to Cloud Storage, they can be loaded into BigQuery as raw tables.
+
+Suggested raw tables:
+
+```text
+raw_ies_2024
+raw_cursos_2024
+```
+
+Suggested source files:
+
+```text
+gs://your-bucket-name/microdados/educacao_superior/2024/parquet/microdados_ed_sup_ies_2024.parquet
+gs://your-bucket-name/microdados/educacao_superior/2024/parquet/microdados_cadastro_cursos_2024.parquet
+```
+
+These raw BigQuery tables will later be used by the ETL pipeline to transform and load the data into MongoDB.
+
+## Loading Parquet Files from Cloud Storage into BigQuery
+
+After uploading the generated Parquet files to Google Cloud Storage, the files must be loaded into BigQuery as raw tables.
+
+This step is currently performed manually through the Google Cloud CLI.
+
+The flow is:
+
+```text
+Local Parquet files → Google Cloud Storage → BigQuery raw tables → MongoDB
