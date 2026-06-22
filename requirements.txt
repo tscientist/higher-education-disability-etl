@@ -1,14 +1,14 @@
 # Development dependencies
-pytest==7.4.3
-pytest-cov==4.1.0
-black==23.12.1
-flake8==6.1.0
-isort==5.13.2
-mypy==1.7.1
-invoke==2.2.0
+pytest>=7.4.3
+pytest-cov>=4.1.0
+black>=23.12.1
+flake8>=6.1.0
+isort>=5.13.2
+mypy>=1.7.1
+invoke>=2.2.0
 
 # Production dependencies
-google-cloud-bigquery==3.14.1
-pymongo==4.6.0
-python-dotenv==1.0.0
-pydantic==2.5.0
+google-cloud-bigquery>=3.14.1
+pymongo>=4.9
+python-dotenv>=1.0.0
+pydantic>=2.5.0
