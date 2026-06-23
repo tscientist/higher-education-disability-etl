@@ -227,4 +227,4 @@ If the counts match, the copy was successful.
 |-------|--------|
 | Destination: `stg_sisu_microdados` | 1,234,567 registros |
 | Source: `br_mec_sisu.microdados` (ano 2018-2022) | 1,234,567 registros |
-| Status | ✓ Match - Copy successful |
+| Status | Match - Copy successful |

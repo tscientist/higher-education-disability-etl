@@ -1,7 +1,19 @@
-"""Main entry point for ETL pipeline"""
-import sys
+"""
+Main entry point for ETL pipeline
 
-from src.etl import ETLPipeline
+Usage:
+    python main.py                      # Run full pipeline
+    python main.py --mode extract       # Extract only (Phase 1)
+    python main.py --mode build         # Extract through Build (Phases 1-6)
+    python main.py --mode full          # Full pipeline with MongoDB load (Phases 1-8, 11)
+"""
+import sys
+import os
+
+# Add src to path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from src.etl.pipeline_orchestrator import ETLPipelineOrchestrator
 from src.utils import get_logger
 
 logger = get_logger(__name__)
@@ -10,10 +22,14 @@ logger = get_logger(__name__)
 def main():
     """Main function"""
     try:
-        logger.info("Iniciando ETL pipeline...")
-        pipeline = ETLPipeline()
-        pipeline.run()
-        logger.info("Pipeline finalizado com sucesso")
+        orchestrator = ETLPipelineOrchestrator()
+        result = orchestrator.run_full_pipeline()
+        
+        if not result.get("success"):
+            logger.error("Pipeline failed")
+            sys.exit(1)
+        
+        logger.info("Pipeline executado com sucesso")
     except Exception as e:
         logger.error(f"Erro fatal: {e}", exc_info=True)
         sys.exit(1)
