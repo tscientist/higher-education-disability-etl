@@ -16,7 +16,9 @@ load_dotenv()
 def verify_mongodb():
     """Verifies MongoDB connection and collections"""
     
-    mongo_uri = os.getenv("MONGO_URI", "mongodb://localhost:27017")
+    mongo_uri = os.getenv("MONGO_URI") or os.getenv("MONGODB_URI")
+    if not mongo_uri:
+        raise ValueError("MONGO_URI or MONGODB_URI environment variable must be set")
     database_name = os.getenv("MONGO_DATABASE", "higher_education")
     
     print(f"\n{'='*80}")
