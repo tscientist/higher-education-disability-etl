@@ -6,6 +6,8 @@ flake8>=6.1.0
 isort>=5.13.2
 mypy>=1.7.1
 invoke>=2.2.0
+pandas
+pyarrow
 
 # Production dependencies
 google-cloud-bigquery>=3.14.1
