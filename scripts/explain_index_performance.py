@@ -253,7 +253,7 @@ class ExplainComparison:
             return True
             
         except Exception as e:
-            logger.error(f"✗ Comparison failed: {e}", exc_info=True)
+            logger.error(f"  Comparison failed: {e}", exc_info=True)
             return False
 
 

@@ -466,7 +466,7 @@ class ETLOrchestrator2022:
             logger.info(f"\n Count Validation:")
             logger.info(f"  BigQuery total: {bq_total:,} (UFs: {bq_uf_count})")
             logger.info(f"  MongoDB total:  {mongo_total:,}")
-            logger.info(f"  Match: {'  YES' if bq_total == mongo_total else '✗ NO'}")
+            logger.info(f"  Match: {'  YES' if bq_total == mongo_total else '  NO'}")
             
             # Sample document
             sample = collection.find_one({"ano": year})
@@ -644,7 +644,7 @@ class SisuAggregatedLoader:
             logger.info(f"  BigQuery silver rows : {bq_total:,}")
             logger.info(f"  MongoDB sisu_aggregated: {mongo_total:,}")
             match = bq_total == mongo_total
-            logger.info(f"  Match: {'✓ YES' if match else '✗ NO (delta=' + str(abs(bq_total - mongo_total)) + ')'}")
+            logger.info(f"  Match: {'YES' if match else ' NO (delta=' + str(abs(bq_total - mongo_total)) + ')'}")
             return match
 
         except Exception as e:

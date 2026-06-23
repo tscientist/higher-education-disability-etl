@@ -59,10 +59,10 @@ class IntegrationTest:
                 self.results["bigquery_setup"] = True
                 return True
             else:
-                logger.error("✗ BigQuery setup failed")
+                logger.error("  BigQuery setup failed")
                 return False
         except Exception as e:
-            logger.error(f"✗ Exception in BigQuery setup: {e}", exc_info=True)
+            logger.error(f"  Exception in BigQuery setup: {e}", exc_info=True)
             return False
     
     def test_etl_orchestrator(self):
@@ -83,10 +83,10 @@ class IntegrationTest:
                 self.results["etl_orchestrator"] = True
                 return True
             else:
-                logger.error("✗ ETL orchestrator failed")
+                logger.error("  ETL orchestrator failed")
                 return False
         except Exception as e:
-            logger.error(f"✗ Exception in ETL orchestrator: {e}", exc_info=True)
+            logger.error(f"  Exception in ETL orchestrator: {e}", exc_info=True)
             return False
     
     def test_indexes(self):
@@ -107,10 +107,10 @@ class IntegrationTest:
                 self.results["indexes"] = True
                 return True
             else:
-                logger.error("✗ Index creation failed")
+                logger.error("  Index creation failed")
                 return False
         except Exception as e:
-            logger.error(f"✗ Exception in index creation: {e}", exc_info=True)
+            logger.error(f"  Exception in index creation: {e}", exc_info=True)
             return False
     
     def test_validation(self):
@@ -127,13 +127,13 @@ class IntegrationTest:
             logger.info(f"Documents in collection: {doc_count:,}")
             
             if doc_count == 0:
-                logger.error("✗ No documents in MongoDB collection")
+                logger.error("  No documents in MongoDB collection")
                 return False
             
             # Sample document
             sample = collection.find_one({"ano": 2022})
             if not sample:
-                logger.error("✗ No sample document found")
+                logger.error("  No sample document found")
                 return False
             
             logger.info(f"\n  Sample Document:")
@@ -148,7 +148,7 @@ class IntegrationTest:
             
             missing = [f for f in required_fields if f not in sample]
             if missing:
-                logger.error(f"✗ Missing required fields: {missing}")
+                logger.error(f"  Missing required fields: {missing}")
                 return False
             
             logger.info(f"  All required fields present")
@@ -163,7 +163,7 @@ class IntegrationTest:
             return True
             
         except Exception as e:
-            logger.error(f"✗ Exception in validation: {e}", exc_info=True)
+            logger.error(f"  Exception in validation: {e}", exc_info=True)
             return False
     
     def test_sample_queries(self):
@@ -228,7 +228,7 @@ class IntegrationTest:
             return True
             
         except Exception as e:
-            logger.error(f"✗ Exception in sample queries: {e}", exc_info=True)
+            logger.error(f"  Exception in sample queries: {e}", exc_info=True)
             return False
     
     def run_all_tests(self):
@@ -263,7 +263,7 @@ class IntegrationTest:
             logger.info("=" * 80)
             
             for test_name, passed in self.results.items():
-                status = "  PASS" if passed else "✗ FAIL"
+                status = "  PASS" if passed else "  FAIL"
                 logger.info(f"{status}: {test_name}")
             
             all_passed = all(self.results.values())
@@ -276,7 +276,7 @@ class IntegrationTest:
                 return all(self.results[key] for key in ["bigquery_setup", "etl_orchestrator", "validation"])
         
         except Exception as e:
-            logger.error(f"✗ Fatal error: {e}", exc_info=True)
+            logger.error(f"  Fatal error: {e}", exc_info=True)
             return False
 
 
