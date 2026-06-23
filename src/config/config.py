@@ -37,4 +37,12 @@ MONGO_COLLECTION_SISU_AGGREGATED = "sisu_aggregated"
 
 # ETL Batch Configuration
 ETL_BATCH_SIZE = int(os.getenv("ETL_BATCH_SIZE", "20000"))
+ETL_PAGE_SIZE = int(os.getenv("ETL_PAGE_SIZE", "5000"))
 ETL_ENABLE_BATCH_MODE = os.getenv("ETL_ENABLE_BATCH_MODE", "true").lower() == "true"
+
+# BigQuery intermediate/final tables for 2022
+BQ_TABLE_SILVER_SISU_AGGREGATED_2022 = "silver_sisu_aggregated_2022"
+BQ_TABLE_GOLD_COURSE_INDICATORS_2022 = "gold_course_indicators_source_2022"
+
+# MongoDB checkpoint collection
+MONGO_COLLECTION_CHECKPOINTS = "etl_checkpoints"

@@ -24,6 +24,23 @@ class BigQueryClient:
         results = query_job.result()
         return [dict(row) for row in results]
     
+    def fetch_pages(self, query: str, page_size: int = 5000):
+        """
+        Executa uma query e retorna resultados em páginas (não materializa tudo em memória).
+        
+        Args:
+            query: SQL query
+            page_size: Número de registros por página
+            
+        Yields:
+            List[dict]: Uma página de resultados
+        """
+        query_job = self.client.query(query)
+        rows = query_job.result(page_size=page_size)
+        
+        for page in rows.pages:
+            yield [dict(row) for row in page]
+    
     def count_records(self, dataset_id, table_id, year_range=None, id_ies=None):
         """
         Conta o número total de registros em uma tabela com filtros opcionais.
