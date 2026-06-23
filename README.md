@@ -8,21 +8,21 @@ For immediate guidance, see **[QUICKSTART.md](QUICKSTART.md)** for installation,
 
 ## What's New
 
-This implementation includes a **complete 12-phase ETL pipeline**:
+This implementation includes a **complete 12-fase ETL pipeline**:
 
-### Phases Implemented 
+### fases Implemented 
 
-| Phase | Name | File |
+| fase | Name | File |
 |-------|------|------|
-| 1 | Extract BigQuery Staging Data | `src/etl/phase_1_extract.py` |
-| 2 | Transform Censo Curso + Censo IES | `src/etl/phase_2_transform_censo.py` |
-| 3 | Transform SISU Microdados | `src/etl/phase_3_transform_sisu.py` |
-| 4-6 | Join, Build Final Documents & Calculate Metrics | `src/etl/phase_456_join_build_metrics.py` |
-| 7 | MongoDB Load | `src/etl/phase_7_mongodb_load.py` |
-| 8 | Create Indexes | `src/etl/phase_8_create_indexes.py` |
+| 1 | Extract BigQuery Staging Data | `src/etl/fase_1_extract.py` |
+| 2 | Transform Censo Curso + Censo IES | `src/etl/fase_2_transform_censo.py` |
+| 3 | Transform SISU Microdados | `src/etl/fase_3_transform_sisu.py` |
+| 4-6 | Join, Build Final Documents & Calculate Metrics | `src/etl/fase_456_join_build_metrics.py` |
+| 7 | MongoDB Load | `src/etl/fase_7_mongodb_load.py` |
+| 8 | Create Indexes | `src/etl/fase_8_create_indexes.py` |
 | 9 | Query Examples | `scripts/mongodb_query_examples.py` |
 | 10 | Explain Plans & Performance | `scripts/mongodb_explain_plan.py` |
-| 11 | Validation & Test Output | `src/etl/phase_11_validation.py` |
+| 11 | Validation & Test Output | `src/etl/fase_11_validation.py` |
 | 12 | Documentation | `docs/ETL_ARCHITECTURE.md` |
 
 
@@ -33,17 +33,17 @@ This implementation includes a **complete 12-phase ETL pipeline**:
 ```
 BigQuery (stg_censo_ies, stg_censo_curso, stg_sisu_microdados)
     ↓
-Phase 1: Extract
+fase 1: Extract
     ↓
-Phase 2: Transform Censo (normalize + join)
+fase 2: Transform Censo (normalize + join)
     ↓
-Phase 3: Transform SISU (aggregate demographics)
+fase 3: Transform SISU (aggregate demografics)
     ↓
-Phases 4-6: Join, Build, Calculate Metrics
+fases 4-6: Join, Build, Calculate Metrics
     ↓
-Phase 7: MongoDB Load (upsert)
+fase 7: MongoDB Load (upsert)
     ↓
-Phase 8: Create Indexes
+fase 8: Create Indexes
     ↓
 MongoDB: gold_course_indicators + sisu_aggregated
 ```
@@ -58,7 +58,7 @@ MongoDB: gold_course_indicators + sisu_aggregated
 
 **`sisu_aggregated`** (Optional, for separate SISU analysis)
 - SISU data aggregated by course/institution/year
-- Demographic breakdowns (sex, age group, municipality)
+- Demografic breakdowns (sex, age group, municipality)
 - Used for $lookup joins with main collection
 
 ## 🔒 Privacy & Data Security
@@ -72,7 +72,7 @@ This implementation prioritizes academic research while protecting privacy:
 - Registration numbers
 - Any other personal identifiers
 
-### Kept (Demographic for Analysis)
+### Kept (Demografic for Analysis)
 - Birth date - transformed to age + age group (18-24, 25-29, etc.)
 - Sex - normalized (F/M/NAO_INFORMADO)
 - Municipality - ID + name + state (aggregated analysis only)
@@ -172,9 +172,9 @@ For 11+ complete query examples, see **[scripts/mongodb_query_examples.py](scrip
 python main.py
 ```
 
-Executes all phases (1-8) plus validation in one command.
+Executes all fases (1-8) plus validation in one command.
 
-### Option 2: Phase-Based Execution (For Testing)
+### Option 2: fase-Based Execution (For Testing)
 
 ```bash
 # Extract only
@@ -209,7 +209,7 @@ result = orchestrator.run_full_pipeline()
 7. What is the SISU access funnel for PcD candidates?
 8. Is there correlation between SISU demand and Census enrollment?
 
-Plus demographic breakdowns by:
+Plus demografic breakdowns by:
 - Sex
 - Age group
 - Candidate municipality
@@ -222,7 +222,7 @@ See **[scripts/mongodb_query_examples.py](scripts/mongodb_query_examples.py)** f
 
 9 indexes across key fields:
 - Simple indexes (ano, uf, id_ies, id_curso, modality, category)
-- Array indexes (SISU demographics)
+- Array indexes (SISU demografics)
 - Compound index for common multi-field queries
 
 ### Query Performance
@@ -331,7 +331,7 @@ data/parquet/microdados_cadastro_cursos_2024.parquet
 
 ```
 src/
-  etl/              # All pipeline phases
+  etl/              # All pipeline fases
   clients/          # BigQuery and MongoDB clients
   config/           # Configuration management
   utils/            # Logging and utilities
