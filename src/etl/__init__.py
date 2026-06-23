@@ -10,7 +10,7 @@ from src.etl.fase_456_join_build_metrics import Fase456JoinBuildAndMetrics
 from src.etl.fase_7_mongodb_load import Fase7MongoDBLoad
 from src.etl.fase_8_create_indexes import Fase8CreateIndexes
 from src.etl.fase_11_validation import Fase11Validation
-from src.etl.pipeline_orchestrator import ETLPipelineOrchestrator
+from src.etl.orchestrator_with_advanced_queries import ETLPipelineWithAdvancedQueries
 
 __all__ = [
     "ETLPipeline",
@@ -21,5 +21,5 @@ __all__ = [
     "Fase7MongoDBLoad",
     "Fase8CreateIndexes",
     "Fase11Validation",
-    "ETLPipelineOrchestrator",
+    "ETLPipelineWithAdvancedQueries",
 ]

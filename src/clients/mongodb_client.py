@@ -6,7 +6,38 @@ from ..utils.logger import logger
 
 class MongoDBClient:
     def __init__(self):
-        self.client = MongoClient(MONGO_URI)
+        # Conectar ao MongoDB com opções SSL/TLS
+        # Para MongoDB Atlas, desabilitar verificação de certificado se necessário
+        try:
+            # Primeiro tenta com verificação de certificado
+            self.client = MongoClient(
+                MONGO_URI,
+                serverSelectionTimeoutMS=30000,
+                connectTimeoutMS=30000,
+                socketTimeoutMS=30000
+            )
+            # Test connection
+            self.client.admin.command('ping')
+            logger.info("Conexao com MongoDB estabelecida com verificacao SSL")
+        except Exception as e:
+            logger.warning(f"Erro com SSL: {e}")
+            logger.warning("Tentando sem verificacao de certificado SSL...")
+            try:
+                # Se falhar, tenta sem verificação de certificado
+                self.client = MongoClient(
+                    MONGO_URI,
+                    tlsInsecure=True,
+                    serverSelectionTimeoutMS=30000,
+                    connectTimeoutMS=30000,
+                    socketTimeoutMS=30000
+                )
+                # Test connection
+                self.client.admin.command('ping')
+                logger.info("Conexao com MongoDB estabelecida (SSL insecure)")
+            except Exception as e2:
+                logger.error(f"Falha ao conectar no MongoDB: {e2}")
+                raise
+        
         self.db = self.client[MONGO_DATABASE]
         self.collection = self.db[MONGO_COLLECTION]
     
@@ -64,6 +95,65 @@ class MongoDBClient:
     def get_collection(self, collection_name):
         """Obtém uma coleção específica"""
         return self.db[collection_name]
+    
+    def ensure_collection_exists(self, collection_name):
+        """
+        Garante que a coleção existe no banco de dados.
+        Se a coleção não existir, cria uma com um documento vazio e o remove.
+        
+        Args:
+            collection_name: Nome da coleção
+            
+        Returns:
+            bool: True se a coleção foi criada ou já existe
+        """
+        try:
+            # Verificar se a coleção já existe
+            existing_collections = self.db.list_collection_names()
+            
+            if collection_name in existing_collections:
+                logger.info(f"Colecao '{collection_name}' ja existe")
+                return True
+            
+            # Se nao existe, criar inserindo um documento dummy e removendo
+            logger.info(f"Criando colecao '{collection_name}'...")
+            collection = self.db[collection_name]
+            
+            # Inserir um documento dummy para criar a coleção
+            dummy_doc = {"_setup": True, "created": True}
+            result = collection.insert_one(dummy_doc)
+            
+            # Remover o documento dummy
+            collection.delete_one({"_id": result.inserted_id})
+            
+            logger.info(f"Colecao '{collection_name}' criada com sucesso")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Erro ao criar colecao '{collection_name}': {e}")
+            return False
+    
+    def ensure_database_exists(self):
+        """
+        Garante que o banco de dados existe.
+        MongoDB cria automaticamente ao inserir dados, mas podemos verificar.
+        
+        Returns:
+            bool: True se o banco foi criado ou já existe
+        """
+        try:
+            existing_databases = self.client.list_database_names()
+            
+            if MONGO_DATABASE in existing_databases:
+                logger.info(f"Banco de dados '{MONGO_DATABASE}' ja existe")
+                return True
+            
+            logger.info(f"Banco de dados '{MONGO_DATABASE}' sera criado na primeira insercao")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Erro ao verificar banco de dados: {e}")
+            return False
     
     def close(self):
         """Fecha a conexão com o MongoDB"""

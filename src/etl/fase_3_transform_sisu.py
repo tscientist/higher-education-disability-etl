@@ -477,3 +477,86 @@ class Fase3TransformSISU:
         except Exception as e:
             logger.error(f"Erro na Phase 3 - Transform SISU: {e}", exc_info=True)
             raise
+    
+    def transform_batch(self, sisu_batch):
+        """
+        Transforma um batch de dados SISU.
+        
+        Args:
+            sisu_batch: List de registros SISU do batch
+            
+        Returns:
+            Tuple[List[dict], List[dict]]: (documentos agregados, documentos finalizados)
+        """
+        try:
+            logger.info(f"Transformando batch SISU: {len(sisu_batch)} registros")
+            aggregations = self.aggregate_sisu_by_course(sisu_batch)
+            final_docs = self.finalize_sisu_aggregations(aggregations)
+            # Retornar final_docs duas vezes (não precisa de agregações separadas)
+            logger.info(f"Batch SISU: {len(aggregations)} grupos agregados, {len(final_docs)} documentos finalizados")
+            return final_docs, final_docs
+        except Exception as e:
+            logger.error(f"Erro ao transformar batch SISU: {e}", exc_info=True)
+            raise
+    
+    def transform_batch_optimized_bigquery(self, sisu_pre_aggregated):
+        """
+        Transforma dados SISU que já foram agregados no BigQuery.
+        
+        MUITO MAIS EFICIENTE: BigQuery fez a agregação de 3.5M registros,
+        retornando apenas ~100-200k documentos agregados já prontos.
+        
+        Args:
+            sisu_pre_aggregated: Lista de documentos já agregados do BigQuery
+            
+        Returns:
+            Tuple[List[dict], List[dict]]: documentos estruturados
+        """
+        if not sisu_pre_aggregated:
+            logger.warning("Nenhum dado SISU agregado para transformar")
+            return [], []
+        
+        logger.info(f"Transformando {len(sisu_pre_aggregated)} agregações SISU do BigQuery")
+        final_docs = []
+        
+        for agg in sisu_pre_aggregated:
+            doc = {
+                "_id": agg.get("_id"),
+                "ano": int(agg.get("ano", 0)),
+                "idIes": str(agg.get("id_ies", "")),
+                "idCurso": str(agg.get("id_curso", "")),
+                "hasMatch": True,
+                "inscricoesTotal": int(agg.get("inscricoes_total", 0)),
+                "inscricoesPcd": int(agg.get("inscricoes_pcd", 0)),
+                "aprovadosRegular": int(agg.get("aprovados_regular", 0)),
+                "aprovadosPcdRegular": int(agg.get("aprovados_pcd", 0)),
+                "matriculadosFinal": int(agg.get("matriculados_final", 0)),
+                "matriculadosPcdFinal": int(agg.get("matriculados_pcd_final", 0)),
+                "notaCandidatoMediaGeral": float(agg.get("nota_candidato_media_geral") or 0),
+                "notaCandidatoMediaPcd": float(agg.get("nota_candidato_media_pcd") or 0),
+                "notaCorteMediaRegular": float(agg.get("nota_corte_media_regular") or 0),
+                "notaCorteMediaPcdRegular": float(agg.get("nota_corte_media_pcd") or 0),
+                "demografia": {
+                    "porSexo": [],
+                    "porFaixaEtaria": [],
+                    "porMunicipio": []
+                }
+            }
+            
+            if agg.get("nome_curso"):
+                doc["nomeCurso"] = agg["nome_curso"]
+            if agg.get("sigla_ies"):
+                doc["siglaIes"] = agg["sigla_ies"]
+            if agg.get("sigla_uf_ies"):
+                doc["siglUfIes"] = agg["sigla_uf_ies"]
+            if agg.get("campus"):
+                doc["campus"] = agg["campus"]
+            if agg.get("turno"):
+                doc["turno"] = agg["turno"]
+            if agg.get("periodicidade"):
+                doc["periodicidade"] = agg["periodicidade"]
+            
+            final_docs.append(doc)
+        
+        logger.info(f"SISU Otimizado: {len(final_docs)} documentos estruturados")
+        return final_docs, final_docs

@@ -435,3 +435,23 @@ class Fase2TransformCenso:
         except Exception as e:
             logger.error(f"Erro na Phase 2 - Transform Censo: {e}", exc_info=True)
             raise
+    
+    def transform_batch(self, censo_curso_batch, censo_ies_batch):
+        """
+        Transforma um batch de dados CENSO (Join IES + Curso).
+        
+        Args:
+            censo_curso_batch: List de registros CENSO CURSO do batch
+            censo_ies_batch: List de registros CENSO IES do batch
+            
+        Returns:
+            List[dict]: Dados transformados e enriquecidos
+        """
+        try:
+            logger.info(f"Transformando batch: {len(censo_curso_batch)} cursos + {len(censo_ies_batch)} IES")
+            joined_data = self.join_censo_curso_with_ies(censo_curso_batch, censo_ies_batch)
+            logger.info(f"Batch transformado: {len(joined_data)} registros")
+            return joined_data
+        except Exception as e:
+            logger.error(f"Erro ao transformar batch CENSO: {e}", exc_info=True)
+            raise

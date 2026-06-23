@@ -8,9 +8,9 @@ GCP_PROJECT_ID = os.getenv("GCP_PROJECT_ID", "higher-education-disability")
 GCP_CREDENTIALS_PATH = os.getenv("GCP_CREDENTIALS_PATH", "credentials.json")
 
 # MongoDB Configuration
-MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
-MONGO_DATABASE = os.getenv("MONGO_DATABASE", "higher_education")
-MONGO_COLLECTION = os.getenv("MONGO_COLLECTION", "students")
+MONGO_URI = os.getenv("MONGODB_URI", "mongodb://localhost:27017")
+MONGO_DATABASE = os.getenv("MONGODB_DB", "higher_education")
+MONGO_COLLECTION = os.getenv("MONGODB_COLLECTION", "students")
 
 # BigQuery Configuration
 BIGQUERY_DATASET = os.getenv("BIGQUERY_DATASET", "ppgti_etl_test")
