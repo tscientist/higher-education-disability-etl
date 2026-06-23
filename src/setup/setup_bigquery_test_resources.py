@@ -6,7 +6,7 @@ that the service account has proper access. It is idempotent and can
 be run multiple times safely.
 
 Usage:
-    python src/setup_bigquery_test_resources.py
+    python src/setup/setup_bigquery_test_resources.py
 """
 
 import os
@@ -19,7 +19,7 @@ from google.cloud import bigquery
 from google.cloud.exceptions import Conflict
 
 # Load .env from project root
-env_path = Path(__file__).parent.parent / ".env"
+env_path = Path(__file__).parent.parent.parent / ".env"
 load_dotenv(env_path)
 
 # Set GOOGLE_APPLICATION_CREDENTIALS if not already set
