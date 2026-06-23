@@ -34,6 +34,7 @@ def main():
         choices=[
             "etl-2022",
             "setup-bigquery",
+            "load-sisu",
             "create-indexes",
             "explain-performance",
             "with-queries",
@@ -64,6 +65,13 @@ def main():
             logger.info("MODO: SETUP BIGQUERY (Phases 2-3)")
             from src.etl.bigquery_intermediate import setup_intermediate_tables
             success = setup_intermediate_tables()
+            sys.exit(0 if success else 1)
+
+        elif args.mode == "load-sisu":
+            logger.info("MODO: LOAD sisu_aggregated (Phase 9-B)")
+            from src.etl.orchestrator_2022 import SisuAggregatedLoader
+            loader = SisuAggregatedLoader()
+            success = loader.run(force=args.force)
             sys.exit(0 if success else 1)
         
         elif args.mode == "create-indexes":

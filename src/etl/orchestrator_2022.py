@@ -14,6 +14,7 @@ from ..clients import BigQueryClient, MongoDBClient
 from ..config import (
     BIGQUERY_DATASET,
     BQ_TABLE_GOLD_COURSE_INDICATORS_2022,
+    BQ_TABLE_SILVER_SISU_AGGREGATED_2022,
     MONGO_COLLECTION_GOLD_COURSE,
     MONGO_COLLECTION_SISU_AGGREGATED,
     MONGO_COLLECTION_CHECKPOINTS,
@@ -406,8 +407,17 @@ class ETLOrchestrator2022:
             self.checkpoint_manager.mark_completed(year)
             logger.info(f"\n  ETL completed: {self.total_processed} documents processed")
             
-            # Phase 8: Validate
-            return self._validate(year)
+            # Phase 8: Validate gold_course_indicators
+            gold_ok = self._validate(year)
+
+            # Phase 9-B: Load sisu_aggregated (referenced collection for $lookup)
+            logger.info("\n" + "=" * 80)
+            logger.info("PHASE 9-B: POPULATING sisu_aggregated")
+            logger.info("=" * 80)
+            sisu_loader = SisuAggregatedLoader()
+            sisu_ok = sisu_loader.run(force=force)
+
+            return gold_ok and sisu_ok
             
         except Exception as e:
             logger.error(f" ETL failed: {e}", exc_info=True)
@@ -472,4 +482,171 @@ class ETLOrchestrator2022:
             
         except Exception as e:
             logger.error(f" Validation failed: {e}", exc_info=True)
+            return False
+
+
+class SisuAggregatedLoader:
+    """
+    Phase 9-B: Loads silver_sisu_aggregated_2022 from BigQuery into the
+    MongoDB sisu_aggregated collection.
+
+    This collection exists to satisfy the academic requirement for $lookup
+    (referenced relationship). SISU data is still embedded inside
+    gold_course_indicators for read performance — this is a deliberate
+    duplication for demonstration purposes.
+
+    Document shape:
+    {
+      "_id": "2022_634_15002",
+      "ano": 2022,
+      "id_ies": "634",
+      "id_curso": "15002",
+      "sigla_uf_ies": "RS",
+      "inscricoes_total": 123,
+      ...
+      "demografia": { "porSexo": [], "porFaixaEtaria": [], "porMunicipio": [] },
+      "etlMetadata": { "source": "silver_sisu_aggregated_2022", ... }
+    }
+    """
+
+    def __init__(self):
+        self.bq_client = BigQueryClient()
+        self.mongo_client = MongoDBClient()
+
+    @staticmethod
+    def _build_sisu_doc(row: Dict) -> Dict:
+        """Transform a BigQuery silver_sisu_aggregated row to a MongoDB document."""
+        ano     = int(row.get("ano", 0))
+        id_ies  = str(row.get("id_ies", ""))
+        id_curso = str(row.get("id_curso", ""))
+
+        def _int(v, default=0):
+            try:
+                return int(v) if v is not None else default
+            except (ValueError, TypeError):
+                return default
+
+        def _float(v):
+            try:
+                return float(v) if v is not None else None
+            except (ValueError, TypeError):
+                return None
+
+        def _list(v):
+            """Ensure BigQuery repeated/array field is always a list of plain dicts."""
+            if v is None:
+                return []
+            # BigQuery client returns repeated fields as lists of Row objects
+            result = []
+            for item in v:
+                result.append(dict(item) if hasattr(item, 'items') else item)
+            return result
+
+        return {
+            "_id": f"{ano}_{id_ies}_{id_curso}",
+            "ano": ano,
+            "id_ies": id_ies,
+            "id_curso": id_curso,
+            "sigla_uf_ies": row.get("sigla_uf_ies"),
+            "inscricoes_total":          _int(row.get("inscricoes_total")),
+            "inscricoes_pcd":            _int(row.get("inscricoes_pcd")),
+            "aprovados_regular":         _int(row.get("aprovados_regular")),
+            "aprovados_pcd":             _int(row.get("aprovados_pcd")),
+            "matriculados_final":        _int(row.get("matriculados_final")),
+            "matriculados_pcd_final":    _int(row.get("matriculados_pcd_final")),
+            "nota_candidato_media_geral": _float(row.get("nota_candidato_media_geral")),
+            "nota_candidato_media_pcd":   _float(row.get("nota_candidato_media_pcd")),
+            "nota_corte_media_geral":     _float(row.get("nota_corte_media_geral")),
+            "nota_corte_media_pcd":       _float(row.get("nota_corte_media_pcd")),
+            "demografia": {
+                "porSexo":        _list(row.get("demografia_por_sexo")),
+                "porFaixaEtaria": _list(row.get("demografia_por_faixa_etaria")),
+                "porMunicipio":   _list(row.get("demografia_por_municipio_candidato")),
+            },
+            "etlMetadata": {
+                "source":   BQ_TABLE_SILVER_SISU_AGGREGATED_2022,
+                "loadedAt": datetime.utcnow().isoformat(),
+                "year":     ano,
+            },
+        }
+
+    def run(self, force: bool = False) -> bool:
+        """
+        Read silver_sisu_aggregated_2022 from BigQuery in pages and
+        bulk-upsert into MongoDB sisu_aggregated.
+        """
+        year = 2022
+        collection = self.mongo_client.db[MONGO_COLLECTION_SISU_AGGREGATED]
+
+        logger.info("\n" + "=" * 80)
+        logger.info("PHASE 9-B: LOADING sisu_aggregated FROM silver_sisu_aggregated_2022")
+        logger.info("=" * 80)
+
+        # Skip if already populated and force not requested
+        if not force:
+            existing = collection.count_documents({"ano": year})
+            if existing > 0:
+                logger.info(f"  sisu_aggregated already has {existing:,} documents for {year}.")
+                logger.info("  Use --force to reload. Skipping.")
+                return self._validate(year)
+
+        query = f"""
+        SELECT *
+        FROM `{self.bq_client.project_id}.{BIGQUERY_DATASET}.{BQ_TABLE_SILVER_SISU_AGGREGATED_2022}`
+        WHERE ano = {year}
+        ORDER BY id_ies, id_curso
+        """
+
+        page_num = 0
+        total_processed = 0
+
+        try:
+            for page in self.bq_client.fetch_pages(query, page_size=ETL_PAGE_SIZE):
+                page_num += 1
+                logger.info(f"\n[SISU PAGE #{page_num}] Processing {len(page)} rows...")
+
+                docs = [self._build_sisu_doc(row) for row in page]
+                logger.info(f"  Prepared {len(docs)} documents")
+
+                operations = [
+                    ReplaceOne({"_id": doc["_id"]}, doc, upsert=True)
+                    for doc in docs
+                ]
+                result = collection.bulk_write(operations, ordered=False)
+
+                logger.info(
+                    f"  Upserted: {result.upserted_count} new, "
+                    f"Matched: {result.matched_count}, "
+                    f"Modified: {result.modified_count}"
+                )
+                total_processed += len(docs)
+
+            logger.info(f"\n  sisu_aggregated load complete: {total_processed:,} documents")
+            return self._validate(year)
+
+        except Exception as e:
+            logger.error(f"  sisu_aggregated load failed: {e}", exc_info=True)
+            return False
+
+    def _validate(self, year: int) -> bool:
+        """Compare BigQuery silver row count against MongoDB sisu_aggregated count."""
+        logger.info("\n[SISU VALIDATION]")
+        try:
+            bq_result = self.bq_client.fetch_data(f"""
+                SELECT COUNT(*) AS total
+                FROM `{self.bq_client.project_id}.{BIGQUERY_DATASET}.{BQ_TABLE_SILVER_SISU_AGGREGATED_2022}`
+                WHERE ano = {year}
+            """)
+            bq_total = bq_result[0]["total"] if bq_result else 0
+
+            mongo_total = self.mongo_client.db[MONGO_COLLECTION_SISU_AGGREGATED].count_documents({"ano": year})
+
+            logger.info(f"  BigQuery silver rows : {bq_total:,}")
+            logger.info(f"  MongoDB sisu_aggregated: {mongo_total:,}")
+            match = bq_total == mongo_total
+            logger.info(f"  Match: {'✓ YES' if match else '✗ NO (delta=' + str(abs(bq_total - mongo_total)) + ')'}")
+            return match
+
+        except Exception as e:
+            logger.error(f"  sisu_aggregated validation failed: {e}", exc_info=True)
             return False

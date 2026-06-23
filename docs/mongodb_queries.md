@@ -1,10 +1,39 @@
 # MongoDB Queries for Higher Education Disability Data (2022)
 
-This document demonstrates comprehensive MongoDB queries on the `gold_course_indicators` collection, including find operations with filters/projections, aggregation pipelines, and analysis queries.
+This document demonstrates comprehensive MongoDB queries on the `gold_course_indicators` and `sisu_aggregated` collections, including find operations with filters/projections, aggregation pipelines, `$lookup` joins, and analysis queries.
 
-## Collection Structure
+---
 
-The `gold_course_indicators` collection contains one document per IES+Curso combination per year:
+## Data Modelling Decision: Embedded vs Referenced
+
+This project uses **two complementary collections**:
+
+| Collection | Purpose | Relationship |
+|---|---|---|
+| `gold_course_indicators` | Main application collection — one document per (ano, IES, Curso) | Owns all data: Censo indicators + SISU embedded |
+| `sisu_aggregated` | Referenced collection — one document per (ano, id_ies, id_curso) | Mirror of SISU data from `silver_sisu_aggregated_2022` |
+
+**Why embed SISU inside `gold_course_indicators`?**  
+Course, IES, Censo indicators and SISU indicators are always read together in analytical queries. Embedding avoids a join at query time, giving optimal read performance for the most common access pattern.
+
+**Why maintain a separate `sisu_aggregated` collection?**  
+The assignment requires demonstrating a **referenced relationship** and a `$lookup` join between two collections. `sisu_aggregated` serves this purpose. It is a deliberate, documented duplication — not a design inconsistency.
+
+**Join keys between the two collections:**
+
+| `gold_course_indicators` | `sisu_aggregated` |
+|---|---|
+| `ano` | `ano` |
+| `ies.idIes` | `id_ies` |
+| `curso.idCurso` | `id_curso` |
+
+---
+
+## Collection Structures
+
+### gold_course_indicators
+
+One document per (ano, IES, Curso) — main application collection:
 
 ```javascript
 {
@@ -51,8 +80,7 @@ The `gold_course_indicators` collection contains one document per IES+Curso comb
     inscricoesPcd: 50,
     aprovadosRegular: 300,
     aprovadosPcd: 45,
-    matriculadosF
-inal: 250,
+    matriculadosFinal: 250,
     matriculadosPcdFinal: 20,
     demografia: {
       porSexo: [
@@ -75,6 +103,53 @@ inal: 250,
     taxaConclusaoPcd: 62.5,
     taxaPerdaGeral: 25.0,
     taxaPerdaPcd: 37.5
+  }
+}
+```
+
+### sisu_aggregated
+
+One document per (ano, id_ies, id_curso) — referenced collection for `$lookup`:
+
+```javascript
+{
+  _id: "2022_634_15002",   // {ano}_{id_ies}_{id_curso}  — same key pattern as gold
+  ano: 2022,
+  id_ies: "634",
+  id_curso: "15002",
+  sigla_uf_ies: "RS",
+
+  // Aggregated totals from silver_sisu_aggregated_2022
+  inscricoes_total: 123,
+  inscricoes_pcd: 10,
+  aprovados_regular: 20,
+  aprovados_pcd: 2,
+  matriculados_final: 15,
+  matriculados_pcd_final: 1,
+  nota_candidato_media_geral: 670.5,
+  nota_candidato_media_pcd: 650.2,
+  nota_corte_media_geral: 680.0,
+  nota_corte_media_pcd: 640.0,
+
+  // Demographic arrays (aggregated by group — no personal data)
+  demografia: {
+    porSexo: [
+      { sexo: "F", inscricoes: 70, inscricoes_pcd: 6, aprovados_pcd: 1, matriculados_pcd: 1 },
+      { sexo: "M", inscricoes: 53, inscricoes_pcd: 4, aprovados_pcd: 1, matriculados_pcd: 0 }
+    ],
+    porFaixaEtaria: [
+      { faixa_etaria: "18-24", inscricoes: 80, inscricoes_pcd: 7, aprovados_pcd: 2, matriculados_pcd: 1 },
+      { faixa_etaria: "25-29", inscricoes: 30, inscricoes_pcd: 2, aprovados_pcd: 0, matriculados_pcd: 0 }
+    ],
+    porMunicipio: [
+      { id_municipio_candidato: "4314902", uf: "RS", inscricoes: 45, inscricoes_pcd: 3, aprovados_pcd: 1, matriculados_pcd: 1 }
+    ]
+  },
+
+  etlMetadata: {
+    source: "silver_sisu_aggregated_2022",
+    loadedAt: "2026-06-23T13:00:00Z",
+    year: 2022
   }
 }
 ```
@@ -979,29 +1054,49 @@ db.gold_course_indicators.find(
 
 ---
 
-## 6. $LOOKUP EXAMPLE - Joining with sisu_aggregated
+## 6. $LOOKUP — Joining gold_course_indicators → sisu_aggregated
 
-The `sisu_aggregated` collection mirrors SISU data by (ano, id_ies, id_curso). You can use `$lookup` to join:
+**Modelling decision:**  
+The application uses **embedded SISU data inside `gold_course_indicators`** for read performance because course, IES, Censo indicators and SISU indicators are usually read together — no join is needed in production queries.  
+The separate **`sisu_aggregated` collection** is maintained to demonstrate a **referenced relationship** and `$lookup`, as required by the assignment. This is a deliberate, documented duplication.
+
+**How the load works:**  
+`python3 main.py --mode load-sisu` reads `silver_sisu_aggregated_2022` from BigQuery in pages of 5,000 rows and bulk-upserts into `sisu_aggregated` using `ReplaceOne(_id, doc, upsert=True)` with `ordered=False`.
+
+**Join keys:**
+
+| `gold_course_indicators` | `sisu_aggregated` |
+|---|---|
+| `ano` | `ano` |
+| `ies.idIes` | `id_ies` |
+| `curso.idCurso` | `id_curso` |
 
 ```javascript
+// $lookup: gold_course_indicators → sisu_aggregated
+// Retrieves the standalone SISU record for each course to cross-validate
+// or extend the embedded sisu block with extra detail.
+
 db.gold_course_indicators.aggregate([
+  // Step 1: filter to a manageable slice
   { $match: { ano: 2022, uf: "SP" } },
+
+  // Step 2: join with sisu_aggregated on (ano, id_ies, id_curso)
   {
     $lookup: {
       from: "sisu_aggregated",
-      let: { 
-        ano: "$ano",
-        id_ies: "$ies.idIes",
-        id_curso: "$curso.idCurso"
+      let: {
+        v_ano:      "$ano",
+        v_id_ies:   "$ies.idIes",
+        v_id_curso: "$curso.idCurso"
       },
       pipeline: [
         {
           $match: {
             $expr: {
               $and: [
-                { $eq: ["$ano", "$$ano"] },
-                { $eq: ["$id_ies", "$$id_ies"] },
-                { $eq: ["$id_curso", "$$id_curso"] }
+                { $eq: ["$ano",      "$$v_ano"]      },
+                { $eq: ["$id_ies",   "$$v_id_ies"]   },
+                { $eq: ["$id_curso", "$$v_id_curso"] }
               ]
             }
           }
@@ -1009,30 +1104,64 @@ db.gold_course_indicators.aggregate([
         {
           $project: {
             _id: 0,
-            sisuDemografia: "$demografia",
-            sisuAproveitos: "$aproveitamento"
+            inscricoes_total:       1,
+            inscricoes_pcd:         1,
+            aprovados_pcd:          1,
+            matriculados_pcd_final: 1,
+            nota_candidato_media_pcd: 1,
+            nota_corte_media_pcd:   1,
+            "demografia.porSexo":        1,
+            "demografia.porFaixaEtaria": 1,
+            "demografia.porMunicipio":   1
           }
         }
       ],
-      as: "sisuDetail"
+      as: "sisuRef"
     }
   },
+
+  // Step 3: flatten the joined array (at most 1 doc per key)
   {
     $unwind: {
-      path: "$sisuDetail",
-      preserveNullAndEmptyArrays: true
+      path: "$sisuRef",
+      preserveNullAndEmptyArrays: true   // keep courses with no SISU match
     }
   },
+
+  // Step 4: project a clean output
   {
     $project: {
-      ies: "$ies.sigla",
+      _id: 1,
+      uf: 1,
+      ies:   "$ies.sigla",
       curso: "$curso.nome",
-      censoPcd: "$indicadoresDeficiencia.matriculas",
-      sisuDemografia: "$sisuDetail.sisuDemografia"
+
+      // from Censo (embedded in gold)
+      censoPcd_matriculas:   "$indicadoresDeficiencia.matriculas",
+      censoPcd_concluintes:  "$indicadoresDeficiencia.concluintes",
+      percentualPcd:         "$metricasCalculadas.percentualMatriculasPcd",
+
+      // from sisu_aggregated (referenced join)
+      sisuInscricoesPcd:        "$sisuRef.inscricoes_pcd",
+      sisuAprovadosPcd:         "$sisuRef.aprovados_pcd",
+      sisuMatriculadosPcd:      "$sisuRef.matriculados_pcd_final",
+      sisuNotaCortePcd:         "$sisuRef.nota_corte_media_pcd",
+      sisuDemografiaSexo:       "$sisuRef.demografia.porSexo",
+      sisuDemografiaFaixaEtaria:"$sisuRef.demografia.porFaixaEtaria",
+      sisuHasMatch: { $cond: [{ $ifNull: ["$sisuRef", false] }, true, false] }
     }
-  }
+  },
+
+  { $sort: { percentualPcd: -1 } },
+  { $limit: 20 }
 ])
 ```
+
+**What each stage does:**
+1. `$match` — filters to SP in 2022 (uses `idx_uf_ano` index)
+2. `$lookup` — joins each gold doc to its matching `sisu_aggregated` doc via `$expr`; the inner `pipeline` projects only needed fields to reduce data transfer
+3. `$unwind` with `preserveNullAndEmptyArrays: true` — courses without a SISU match still appear (LEFT JOIN behaviour)
+4. `$project` — exposes Censo fields side-by-side with SISU fields so you can compare both sources for the same course
 
 ---
 
