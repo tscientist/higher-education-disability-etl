@@ -77,13 +77,13 @@ python main.py --mode full
 ```
 
 **What it does:**
-- ✓ Extracts data from BigQuery
-- ✓ Transforms and joins Census data
-- ✓ Transforms SISU data into aggregations
-- ✓ Builds final analytical documents
-- ✓ Loads documents into MongoDB
-- ✓ Creates indexes for queries
-- ✓ Validates results and displays sample
+- Extracts data from BigQuery
+- Transforms and joins Census data
+- Transforms SISU data into aggregations
+- Builds final analytical documents
+- Loads documents into MongoDB
+- Creates indexes for queries
+- Validates results and displays sample
 
 **Output:**
 - Console logs (streaming)
