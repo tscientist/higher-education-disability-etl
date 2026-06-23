@@ -15,10 +15,13 @@ def normalize_column_name(column: str) -> str:
         .replace(" ", "_")
         .replace("-", "_")
         .replace("/", "_")
+        .replace(".", "_")
     )
 
 
-def convert_csv_to_parquet(input_file: Path, output_file: Path) -> None:
+def convert_csv_to_parquet(input_file: Path) -> None:
+    output_file = OUTPUT_DIR / f"{input_file.stem}.parquet"
+
     print(f"Lendo arquivo: {input_file}")
 
     df = pd.read_csv(
@@ -39,20 +42,25 @@ def convert_csv_to_parquet(input_file: Path, output_file: Path) -> None:
         index=False
     )
 
-    print(f"Arquivo gerado: {output_file}")
+    print(f"Arquivo Parquet gerado: {output_file}")
+    print("-" * 80)
 
 
-def main():
-    files = [
-        "microdados_ed_sup_ies_2024.csv",
-        "microdados_cadastro_cursos_2024.csv",
-    ]
+def main() -> None:
+    csv_files = sorted([
+        file for file in INPUT_DIR.iterdir()
+        if file.is_file() and file.suffix.lower() == ".csv"
+    ])
 
-    for file_name in files:
-        input_file = INPUT_DIR / file_name
-        output_file = OUTPUT_DIR / file_name.replace(".csv", ".parquet")
+    if not csv_files:
+        print(f"Nenhum arquivo CSV encontrado em: {INPUT_DIR}")
+        return
 
-        convert_csv_to_parquet(input_file, output_file)
+    print(f"Arquivos CSV encontrados: {len(csv_files)}")
+    print("-" * 80)
+
+    for csv_file in csv_files:
+        convert_csv_to_parquet(csv_file)
 
 
 if __name__ == "__main__":
