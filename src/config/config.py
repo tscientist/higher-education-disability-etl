@@ -17,7 +17,7 @@ BIGQUERY_DATASET = os.getenv("BIGQUERY_DATASET", "ppgti_etl_test")
 BIGQUERY_TABLE = os.getenv("BIGQUERY_TABLE")
 
 # ETL Configuration - Year range
-ETL_START_YEAR = int(os.getenv("ETL_START_YEAR", "2018"))
+ETL_START_YEAR = int(os.getenv("ETL_START_YEAR", "2022"))
 ETL_END_YEAR = int(os.getenv("ETL_END_YEAR", "2022"))
 
 # ETL Configuration - Optional limit for test runs
@@ -34,3 +34,7 @@ BQ_TABLE_CENSO_DICIONARIO = "stg_censo_dicionario"
 # MongoDB collections for analytical data
 MONGO_COLLECTION_GOLD_COURSE = "gold_course_indicators"
 MONGO_COLLECTION_SISU_AGGREGATED = "sisu_aggregated"
+
+# ETL Batch Configuration
+ETL_BATCH_SIZE = int(os.getenv("ETL_BATCH_SIZE", "20000"))
+ETL_ENABLE_BATCH_MODE = os.getenv("ETL_ENABLE_BATCH_MODE", "true").lower() == "true"

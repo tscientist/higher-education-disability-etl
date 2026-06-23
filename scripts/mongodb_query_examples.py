@@ -1,8 +1,7 @@
 """
-Phase 9: MongoDB Query Examples
+fase 9: MongoDB Query Examples
 
 Exemplos de queries MongoDB para responder questões analíticas.
-Este arquivo pode ser usado como referência ou executado como script.
 """
 
 from pymongo import MongoClient
@@ -171,7 +170,7 @@ class MongoDBQueryExamples:
             query
         )
     
-    def query_3_array_access_sisu_demographic(self):
+    def query_3_array_access_sisu_demografic(self):
         """
         Query 3: Acesso a arrays em SISU - Demográficos.
         
@@ -671,9 +670,9 @@ class MongoDBQueryExamples:
             pipeline
         )
     
-    # ========== DEMOGRAPHIC QUERIES (Demográficas) ==========
+    # ========== DEMOGRAfIC QUERIES (Demográficas) ==========
     
-    def aggregation_demographic_sisu_pcd_by_sex(self):
+    def aggregation_demografic_sisu_pcd_by_sex(self):
         """
         Query Demográfica 1: Funil de acesso SISU PcD por sexo
         
@@ -713,7 +712,7 @@ class MongoDBQueryExamples:
             collection_name="sisu_aggregated"
         )
     
-    def aggregation_demographic_sisu_pcd_by_age_group(self):
+    def aggregation_demografic_sisu_pcd_by_age_group(self):
         """
         Query Demográfica 2: Funil de acesso SISU PcD por faixa etária
         """
@@ -756,7 +755,7 @@ class MongoDBQueryExamples:
             # Find queries (simples)
             self.query_1_filter_by_year_uf_modality()
             self.query_2_dot_notation_nested()
-            self.query_3_array_access_sisu_demographic()
+            self.query_3_array_access_sisu_demografic()
             
             # Aggregation pipelines (complexas)
             self.aggregation_q1_evolution_pcd_enrollments()
@@ -770,9 +769,9 @@ class MongoDBQueryExamples:
             # Lookup query
             self.query_8_lookup_sisu_match()
             
-            # Demographic queries
-            self.aggregation_demographic_sisu_pcd_by_sex()
-            self.aggregation_demographic_sisu_pcd_by_age_group()
+            # Demografic queries
+            self.aggregation_demografic_sisu_pcd_by_sex()
+            self.aggregation_demografic_sisu_pcd_by_age_group()
             
             print(f"\n{'='*80}")
             print("Todas as queries foram executadas com sucesso!")

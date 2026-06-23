@@ -3,9 +3,9 @@ Main entry point for ETL pipeline
 
 Usage:
     python main.py                      # Run full pipeline
-    python main.py --mode extract       # Extract only (Phase 1)
-    python main.py --mode build         # Extract through Build (Phases 1-6)
-    python main.py --mode full          # Full pipeline with MongoDB load (Phases 1-8, 11)
+    python main.py --mode extract       # Extract only (Fase 1)
+    python main.py --mode build         # Extract through Build (Fases 1-6)
+    python main.py --mode full          # Full pipeline with MongoDB load (Fases 1-8, 11)
 """
 import sys
 import os
