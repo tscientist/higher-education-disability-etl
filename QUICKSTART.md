@@ -62,7 +62,32 @@ python scripts/verify_bigquery_tables.py
 
 ## Running the Pipeline
 
-### Full Pipeline (Recommended)
+### Batch-Corrected Mode 
+
+```bash
+python main.py --mode batch-corrected
+```
+
+**What it does:**
+- Loads SISU aggregated data (1x): 3.5M → ~150k documents
+- Loads CENSO IES (1x): ~2,600 institutions (stays in memory!)
+- Processes CENSO CURSO in 29 batches (20k per batch)
+- Joins with O(1) lookups against indices
+- Completes in ~8-10 minutes
+
+**Why it's fast:** IES is always small, allowing complete in-memory indices and O(1) joins!
+
+### With Advanced MongoDB Queries
+
+Run ETL + 8 advanced aggregation pipeline queries:
+
+```bash
+python main.py --mode with-queries
+```
+
+Includes complex queries with `$lookup`, `$group`, `$facet`, `$unwind`, etc.
+
+### Full Pipeline (All Data at Once)
 
 Executes all 8 phases plus validation:
 

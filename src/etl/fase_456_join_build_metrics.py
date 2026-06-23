@@ -287,3 +287,36 @@ class Fase456JoinBuildAndMetrics:
         except Exception as e:
             logger.error(f"Erro na Phase 4-6 - Join, Build & Metrics: {e}", exc_info=True)
             raise
+    
+    def join_and_build_batch(self, censo_batch_transformed, sisu_batch_transformed, year_range=None):
+        """
+        Executa as fases 4-6 em um batch: Join, Build e Metrics.
+        
+        Args:
+            censo_batch_transformed: Dados CENSO transformados do batch
+            sisu_batch_transformed: Dados SISU transformados do batch (lista de docs finalizados)
+            year_range: Tupla (start_year, end_year) para metadados
+            
+        Returns:
+            List[dict]: Documentos finais prontos para MongoDB
+        """
+        try:
+            logger.info(f"Fase 4-6: Juntando {len(censo_batch_transformed)} cursos com SISU...")
+            
+            # Fase 4: Join
+            joined_data = self.join_with_sisu(censo_batch_transformed, sisu_batch_transformed)
+            
+            # Fase 5: Build final documents
+            final_docs = []
+            for curso in joined_data:
+                sisu_match = curso.get("_sisu_match")
+                doc = self.build_final_document(curso, sisu_match, year_range)
+                final_docs.append(doc)
+            
+            docs_with_sisu = sum(1 for d in final_docs if d.get("sisu", {}).get("hasMatch"))
+            logger.info(f"Batch construido: {len(final_docs)} docs ({docs_with_sisu} com SISU)")
+            
+            return final_docs
+        except Exception as e:
+            logger.error(f"Erro ao processar batch (Fases 4-6): {e}", exc_info=True)
+            raise

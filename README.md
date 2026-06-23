@@ -26,8 +26,7 @@ This implementation includes a **complete 12-fase ETL pipeline**:
 | 12 | Documentation | `docs/ETL_ARCHITECTURE.md` |
 
 
- 🏗️ Architecture
-
+ Architecture
 ### Data Flow
 
 ```
@@ -35,11 +34,9 @@ BigQuery (stg_censo_ies, stg_censo_curso, stg_sisu_microdados)
     ↓
 fase 1: Extract
     ↓
-fase 2: Transform Censo (normalize + join)
+fases 2-3: Transform Censo + SISU
     ↓
-fase 3: Transform SISU (aggregate demografics)
-    ↓
-fases 4-6: Join, Build, Calculate Metrics
+fases 4-6: Join (O(1) com índices), Build, Calculate Metrics
     ↓
 fase 7: MongoDB Load (upsert)
     ↓
@@ -61,7 +58,7 @@ MongoDB: gold_course_indicators + sisu_aggregated
 - Demografic breakdowns (sex, age group, municipality)
 - Used for $lookup joins with main collection
 
-## 🔒 Privacy & Data Security
+## Privacy & Data Security
 
 This implementation prioritizes academic research while protecting privacy:
 
