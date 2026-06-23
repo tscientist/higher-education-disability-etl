@@ -204,18 +204,17 @@ class BigQueryClient:
             sigla_ies,
             campus,
             turno,
-            sigla_uf as sigla_uf_ies,
             periodicidade,
             COUNT(*) as inscricoes_total,
-            COUNTIF(modalidade_concorrencia LIKE '%deficiencia%' OR tipo_cota LIKE '%deficiencia%' OR cota_deficiencia = true OR pcd = true) as inscricoes_pcd,
-            COUNTIF(status_candidato LIKE '%aprovado%' AND (modalidade_concorrencia NOT LIKE '%deficiencia%' AND tipo_cota NOT LIKE '%deficiencia%')) as aprovados_regular,
-            COUNTIF(status_candidato LIKE '%aprovado%' AND (modalidade_concorrencia LIKE '%deficiencia%' OR tipo_cota LIKE '%deficiencia%' OR cota_deficiencia = true OR pcd = true)) as aprovados_pcd,
-            COUNTIF(status_matricula LIKE '%matriculado%' AND (modalidade_concorrencia NOT LIKE '%deficiencia%' AND tipo_cota NOT LIKE '%deficiencia%')) as matriculados_final,
-            COUNTIF(status_matricula LIKE '%matriculado%' AND (modalidade_concorrencia LIKE '%deficiencia%' OR tipo_cota LIKE '%deficiencia%' OR cota_deficiencia = true OR pcd = true)) as matriculados_pcd_final,
-            ROUND(AVG(SAFE.FLOAT64(nota_candidato)), 2) as nota_candidato_media_geral,
-            ROUND(AVG(IF(modalidade_concorrencia LIKE '%deficiencia%' OR tipo_cota LIKE '%deficiencia%' OR cota_deficiencia = true OR pcd = true, SAFE.FLOAT64(nota_candidato), NULL)), 2) as nota_candidato_media_pcd,
-            ROUND(AVG(SAFE.FLOAT64(nota_corte)), 2) as nota_corte_media_regular,
-            ROUND(AVG(IF(modalidade_concorrencia LIKE '%deficiencia%' OR tipo_cota LIKE '%deficiencia%' OR cota_deficiencia = true OR pcd = true, SAFE.FLOAT64(nota_corte), NULL)), 2) as nota_corte_media_pcd,
+            COUNTIF(modalidade_concorrencia LIKE '%deficiencia%' OR tipo_cota LIKE '%deficiencia%') as inscricoes_pcd,
+            COUNTIF(status_aprovado = true AND (modalidade_concorrencia NOT LIKE '%deficiencia%' AND tipo_cota NOT LIKE '%deficiencia%')) as aprovados_regular,
+            COUNTIF(status_aprovado = true AND (modalidade_concorrencia LIKE '%deficiencia%' OR tipo_cota LIKE '%deficiencia%')) as aprovados_pcd,
+            COUNTIF(status_matricula IS NOT NULL AND (modalidade_concorrencia NOT LIKE '%deficiencia%' AND tipo_cota NOT LIKE '%deficiencia%')) as matriculados_final,
+            COUNTIF(status_matricula IS NOT NULL AND (modalidade_concorrencia LIKE '%deficiencia%' OR tipo_cota LIKE '%deficiencia%')) as matriculados_pcd_final,
+            ROUND(AVG(nota_candidato), 2) as nota_candidato_media_geral,
+            ROUND(AVG(IF(modalidade_concorrencia LIKE '%deficiencia%' OR tipo_cota LIKE '%deficiencia%', nota_candidato, NULL)), 2) as nota_candidato_media_pcd,
+            ROUND(AVG(nota_corte), 2) as nota_corte_media_regular,
+            ROUND(AVG(IF(modalidade_concorrencia LIKE '%deficiencia%' OR tipo_cota LIKE '%deficiencia%', nota_corte, NULL)), 2) as nota_corte_media_pcd,
             COUNT(DISTINCT sexo) as sexo_tipos,
             COUNT(DISTINCT id_municipio_candidato) as municipio_tipos
         FROM `{table_ref}`
@@ -227,7 +226,7 @@ class BigQueryClient:
             query += f" AND ano >= {start_year} AND ano <= {end_year}"
         
         query += """
-        GROUP BY ano, id_ies, id_curso, nome_curso, sigla_ies, campus, turno, sigla_uf, periodicidade
+        GROUP BY ano, id_ies, id_curso, nome_curso, sigla_ies, campus, turno, periodicidade
         ORDER BY ano DESC, id_ies, id_curso
         """
         
@@ -261,12 +260,11 @@ class BigQueryClient:
             CAST(id_ies AS STRING) as id_ies,
             CONCAT(CAST(ano AS STRING), '_', CAST(id_ies AS STRING)) as _id,
             sigla_ies,
-            sigla_uf as sigla_uf_ies,
             COUNT(*) as inscricoes_total,
-            COUNTIF(modalidade_concorrencia LIKE '%deficiencia%' OR tipo_cota LIKE '%deficiencia%' OR cota_deficiencia = true OR pcd = true) as inscricoes_pcd,
-            COUNTIF(status_candidato LIKE '%aprovado%') as aprovados_total,
-            COUNTIF(status_matricula LIKE '%matriculado%') as matriculados_total,
-            ROUND(AVG(SAFE.FLOAT64(nota_candidato)), 2) as nota_media_geral,
+            COUNTIF(modalidade_concorrencia LIKE '%deficiencia%' OR tipo_cota LIKE '%deficiencia%') as inscricoes_pcd,
+            COUNTIF(status_aprovado = true) as aprovados_total,
+            COUNTIF(status_matricula IS NOT NULL) as matriculados_total,
+            ROUND(AVG(nota_candidato), 2) as nota_media_geral,
             COUNT(DISTINCT id_curso) as total_cursos,
             COUNT(DISTINCT sexo) as sexo_tipos,
             COUNT(DISTINCT id_municipio_candidato) as municipio_tipos
@@ -279,7 +277,7 @@ class BigQueryClient:
             query += f" AND ano >= {start_year} AND ano <= {end_year}"
         
         query += """
-        GROUP BY ano, id_ies, sigla_ies, sigla_uf
+        GROUP BY ano, id_ies, sigla_ies
         ORDER BY ano DESC, id_ies
         """
         

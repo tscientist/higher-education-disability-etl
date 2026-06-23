@@ -1,9 +1,6 @@
 """
 Main entry point for ETL pipeline
 
-🏫 OBSERVAÇÃO CRÍTICA: IES SEMPRE tem ~2,500-3,000 valores!
-   Isso muda TUDO na arquitetura! Ver: docs/IES_DIMENSIONALITY_OPTIMIZATION.md
-
 Usage:
     python main.py --mode with-queries       # ETL completo
     python main.py --mode extract            # Extract only (Fase 1)
@@ -39,19 +36,7 @@ def main():
     
     try:
         if args.mode == "with-queries":
-            logger.info("\n" + "="*80)
-            logger.info("🏫 MODO: ETL + QUERIES AVANÇADAS (RECOMENDADO)")
-            logger.info("="*80)
-            logger.info("Executa:")
-            logger.info("├─ Fases 1-8: ETL Completo")
-            logger.info("├─ MongoDB Load com integridade garantida")
-            logger.info("├─ 8 Queries Avançadas com Aggregation Pipeline")
-            logger.info("│   ├─ $lookup (joins)")
-            logger.info("│   ├─ $group (agregações)")
-            logger.info("│   ├─ $facet (busca facetada)")
-            logger.info("│   └─ $unwind (desconstrução arrays)")
-            logger.info("└─ Índices MongoDB otimizados")
-            logger.info("="*80 + "\n")
+            logger.info("MODO: ETL + QUERIES AVANÇADAS")
             from src.etl.orchestrator_with_advanced_queries import ETLPipelineWithAdvancedQueries
             orchestrator = ETLPipelineWithAdvancedQueries()
             result = orchestrator.run_full_pipeline_with_queries()

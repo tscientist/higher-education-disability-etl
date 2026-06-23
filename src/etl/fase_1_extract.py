@@ -259,10 +259,10 @@ class Fase1Extract:
         logger.info(f"Tamanho do batch: {self.batch_size} registros por tabela\n")
         
         try:
-            # Ler Censo IES UMA VEZ (é pequeno: 2595 registros)
+            # Ler Censo IES UMA VEZ 
             logger.info("Lendo Censo IES (tabela pequena)...")
             ies_data = self.extract_censo_ies()
-            logger.info(f"✓ Censo IES lido: {len(ies_data)} registros\n")
+            logger.info(f"Censo IES lido: {len(ies_data)} registros\n")
             
             # Criar geradores para Curso e SISU (são grandes)
             curso_generator = self.extract_censo_curso_in_batches()
@@ -307,7 +307,7 @@ class Fase1Extract:
                     }
                     
                 except StopIteration:
-                    logger.info(f"\n✓ Extração completa! {batch_number} batches processados")
+                    logger.info(f"\nExtração completa! {batch_number} batches processados")
                     logger.info(f"  Total final - Censo IES: {total_ies} | Censo Curso: {total_curso} | SISU: {total_sisu}\n")
                     break
                     
