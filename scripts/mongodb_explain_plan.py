@@ -14,7 +14,7 @@ import os
 class MongoDBExplainPlan:
     """Análise de performance de queries MongoDB"""
     
-    def __init__(self, mongo_uri="mongodb://localhost:27017", database="higher_education"):
+    def __init__(self, mongo_uri=None, database=None):
         """
         Inicializa a conexão com MongoDB.
         
@@ -22,8 +22,10 @@ class MongoDBExplainPlan:
             mongo_uri: URI de conexão do MongoDB
             database: Nome do banco de dados
         """
-        self.mongo_uri = mongo_uri
-        self.database_name = database
+        self.mongo_uri = mongo_uri or os.getenv("MONGO_URI") or os.getenv("MONGODB_URI")
+        if not self.mongo_uri:
+            raise ValueError("MONGO_URI or MONGODB_URI environment variable must be set")
+        self.database_name = database or os.getenv("MONGO_DATABASE", "higher_education")
         self.client = None
         self.db = None
         self.collection = None
@@ -327,7 +329,9 @@ if __name__ == "__main__":
     
     load_dotenv()
     
-    mongo_uri = os.getenv("MONGO_URI", "mongodb://localhost:27017")
+    mongo_uri = os.getenv("MONGO_URI") or os.getenv("MONGODB_URI")
+    if not mongo_uri:
+        raise ValueError("MONGO_URI or MONGODB_URI environment variable must be set")
     database = os.getenv("MONGO_DATABASE", "higher_education")
     
     explain = MongoDBExplainPlan(mongo_uri, database)

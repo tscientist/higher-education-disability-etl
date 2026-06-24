@@ -4,11 +4,14 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # BigQuery Configuration
-GCP_PROJECT_ID = os.getenv("GCP_PROJECT_ID", "higher-education-disability")
-GCP_CREDENTIALS_PATH = os.getenv("GCP_CREDENTIALS_PATH", "credentials.json")
+# Strip whitespace/newlines to avoid errors from CR/LF in .env values
+GCP_PROJECT_ID = os.getenv("GCP_PROJECT_ID", "higher-education-disability").strip()
+GCP_CREDENTIALS_PATH = os.getenv("GCP_CREDENTIALS_PATH", "credentials.json").strip()
 
 # MongoDB Configuration
-MONGO_URI = os.getenv("MONGODB_URI", "mongodb://localhost:27017")
+MONGO_URI = os.getenv("MONGO_URI") or os.getenv("MONGODB_URI")
+if not MONGO_URI:
+    raise ValueError("MONGO_URI or MONGODB_URI environment variable must be set")
 MONGO_DATABASE = os.getenv("MONGODB_DB", "higher_education")
 MONGO_COLLECTION = os.getenv("MONGODB_COLLECTION", "students")
 
