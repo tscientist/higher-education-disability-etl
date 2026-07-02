@@ -105,10 +105,13 @@ class DocumentBuilder:
         ano = DocumentBuilder._normalize_int(row.get("ano"))
         id_ies = str(row.get("id_ies", ""))
         id_curso = str(row.get("id_curso", ""))
+        id_municipio = str(row.get("id_municipio_curso", "") or "")
         uf = row.get("sigla_uf", "XX")
         
-        # Build deterministic ID
-        _id = f"{ano}_{id_ies}_{id_curso}"
+        # _id inclui id_municipio para suportar IES EaD com múltiplos polos
+        # Ex: "2022_298_89380_2104057" (mesmo curso, polo MA)
+        #     "2022_298_89380_2910503" (mesmo curso, polo BA)
+        _id = f"{ano}_{id_ies}_{id_curso}_{id_municipio}"
         
         # Build document
         doc = {

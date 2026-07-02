@@ -5,8 +5,23 @@
 -- This is the final source table that Python ETL will read in pages
 
 CREATE OR REPLACE TABLE `higher-education-disability.ppgti_etl.gold_course_indicators_source_2022` AS
+
+WITH
+
+-- stg_censo_ies pode ter múltiplas linhas por (ano, id_ies) — deduplica
+censo_ies_dedup AS (
+  SELECT *
+  FROM (
+    SELECT *,
+      ROW_NUMBER() OVER (PARTITION BY ano, id_ies ORDER BY id_ies) AS rn
+    FROM `higher-education-disability.ppgti_etl.stg_censo_ies`
+    WHERE ano = 2022
+  )
+  WHERE rn = 1
+)
+
 SELECT
-  -- Keys
+  -- Keys: inclui id_municipio para suportar IES EaD com múltiplos polos
   c.ano,
   c.id_ies,
   c.id_curso,
@@ -120,7 +135,7 @@ SELECT
   (s._id IS NOT NULL) as sisu_has_match
   
 FROM `higher-education-disability.ppgti_etl.stg_censo_curso` c
-LEFT JOIN `higher-education-disability.ppgti_etl.stg_censo_ies` i
+LEFT JOIN censo_ies_dedup i
   ON c.ano = i.ano
   AND c.id_ies = i.id_ies
 LEFT JOIN `higher-education-disability.ppgti_etl.silver_sisu_aggregated_2022` s
