@@ -92,6 +92,75 @@ gcloud auth application-default login
 gcloud config set project higher-education-disability
 ```
 
+### Credenciais e permissões necessárias no BigQuery
+
+A aplicação pode autenticar no Google Cloud de duas formas:
+
+1. usando um arquivo de chave de uma service account, configurado em `GCP_CREDENTIALS_PATH`;
+2. usando autenticação local com `gcloud auth application-default login`.
+
+Independentemente da forma de autenticação, a conta utilizada precisa ter permissões suficientes para executar jobs no BigQuery, criar datasets/tabelas, inserir dados e consultar dados.
+
+Para este projeto, a configuração recomendada é conceder à conta os seguintes papéis IAM no projeto `higher-education-disability`:
+
+| Papel IAM            | Identificador               | Uso no projeto                                                                                                   |
+| -------------------- | --------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| BigQuery Job User    | `roles/bigquery.jobUser`    | Permite executar jobs de consulta e carga no BigQuery                                                            |
+| BigQuery Data Editor | `roles/bigquery.dataEditor` | Permite criar datasets, criar tabelas, inserir dados, substituir tabelas e consultar dados no dataset do projeto |
+| BigQuery Data Viewer | `roles/bigquery.dataViewer` | Permite ler tabelas existentes, quando o acesso for apenas de leitura                                            |
+
+Para executar todo o fluxo do projeto, incluindo criação de tabelas de staging, leitura de dados públicos, inserção de dados e consultas, a conta deve ter pelo menos:
+
+```text
+roles/bigquery.jobUser
+roles/bigquery.dataEditor
+```
+
+Esses papéis são necessários porque o pipeline executa operações como:
+
+```sql
+CREATE OR REPLACE TABLE destino AS
+SELECT ...
+FROM origem;
+```
+
+Além disso, o pipeline também executa consultas `SELECT`, valida contagens de registros e lê tabelas de staging durante o ETL.
+
+Caso a conta seja usada apenas para consultar dados já existentes, sem criar ou substituir tabelas, o papel `roles/bigquery.dataViewer` pode ser suficiente para leitura, junto com `roles/bigquery.jobUser` para executar as consultas.
+
+Segundo a documentação oficial do BigQuery, o papel **BigQuery Job User** permite executar jobs de consulta e carga, enquanto o papel **BigQuery Data Editor** permite criar datasets, criar tabelas, carregar dados e consultar tabelas.
+
+#### Exemplo usando service account
+
+No `.env`, informe o caminho do arquivo JSON da chave:
+
+```env
+GCP_CREDENTIALS_PATH=src/credentials.json
+```
+
+O arquivo precisa existir no caminho informado:
+
+```bash
+ls -la src/credentials.json
+```
+
+#### Exemplo usando autenticação local
+
+Se não for usar arquivo de chave, deixe a variável vazia:
+
+```env
+GCP_CREDENTIALS_PATH=
+```
+
+E execute:
+
+```bash
+gcloud auth application-default login
+gcloud config set project higher-education-disability
+```
+
+Nesse caso, as permissões necessárias devem estar associadas ao usuário autenticado no Google Cloud.
+
 5. **Exportar as variáveis de ambiente:**
 
 Depois de atualizar o arquivo `.env`, exporte as variáveis para que os scripts e a aplicação consigam reconhecê-las:
