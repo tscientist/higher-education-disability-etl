@@ -193,8 +193,61 @@ Esse script executa as verificações e preparações necessárias para o projet
 
 7. **Executar o pipeline ETL:**
 
-Após o setup finalizar com sucesso, execute:
+Após o setup finalizar com sucesso, execute o pipeline completo na seguinte ordem:
+
+### Opção A: Pipeline 2022 (recomendado)
 
 ```bash
-python main.py --mode with-queries
+# Passo 1 — Criar tabelas intermediárias no BigQuery (só precisa rodar 1 vez)
+python3 main.py --mode setup-bigquery
+
+# Passo 2 — ETL: lê BigQuery em páginas e escreve em gold_course_indicators (~573k docs)
+python3 main.py --mode etl-2022
+
+# Passo 3 — Popula sisu_aggregated (coleção referenciada para demonstrar $lookup)
+python3 main.py --mode load-sisu
+
+# Passo 4 — Cria os 12 índices no MongoDB
+python3 main.py --mode create-indexes
 ```
+
+Executa todas as fases em sequência e valida os resultados.
+
+### Opção B: Pipeline legado (com queries avançadas)
+
+```bash
+python3 main.py --mode with-queries
+```
+
+---
+
+## Reprocessar do zero
+
+Para limpar o banco e reprocessar tudo:
+
+```bash
+# 1. Limpar o MongoDB
+# 2. Rodar o pipeline com --force (ignora checkpoint)
+python3 main.py --mode etl-2022 --force && \
+python3 main.py --mode load-sisu --force && \
+python3 main.py --mode create-indexes
+```
+----
+
+## Comparação de performance dos índices
+
+```bash
+python3 main.py --mode explain-performance --force
+```
+
+Demonstra o impacto dos índices: COLLSCAN -> IXSCAN (50-90x mais rápido).
+
+---
+
+## Troubleshooting
+
+- **BigQuery — credenciais:** Verifique `GCP_CREDENTIALS_PATH` no `.env`
+- **MongoDB — connection refused:** Verifique `MONGODB_URI` no `.env`
+- **Memória insuficiente:** Reduza `ETL_PAGE_SIZE` no `.env` (padrão: 5000)
+
+Para documentação completa, consulte `docs/mongodb_queries.md` e `docs/mongodb_indexes_and_performance.md`.

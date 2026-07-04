@@ -428,24 +428,45 @@ class ETLOrchestrator2022:
             return False
     
     def _bulk_upsert_page(self, docs: List[Dict], page_num: int, year: int):
-        """Bulk upsert a page of documents"""
-        logger.info(f"Upserting {len(docs)} documents to MongoDB...")
-        
-        operations = [
-            ReplaceOne(
-                {"_id": doc["_id"]},
-                doc,
-                upsert=True
-            )
-            for doc in docs
-        ]
-        
+        """Bulk upsert a page of documents, splitting into sub-batches with retry"""
+        import time
+
+        UPSERT_BATCH_SIZE = 500   # sub-batch: 500 docs por vez no Atlas
+        MAX_RETRIES = 3
+        RETRY_DELAY = 5           # segundos entre tentativas
+
         collection = self.mongo_client.db[MONGO_COLLECTION_GOLD_COURSE]
-        result = collection.bulk_write(operations, ordered=False)
-        
-        logger.info(f"Upserted: {result.upserted_count} new, "
-                   f"Matched: {result.matched_count}, "
-                   f"Modified: {result.modified_count}")
+        total_upserted = total_matched = total_modified = 0
+
+        # Divide a página em sub-batches menores para evitar timeout
+        for i in range(0, len(docs), UPSERT_BATCH_SIZE):
+            sub_batch = docs[i: i + UPSERT_BATCH_SIZE]
+            operations = [
+                ReplaceOne({"_id": doc["_id"]}, doc, upsert=True)
+                for doc in sub_batch
+            ]
+
+            for attempt in range(1, MAX_RETRIES + 1):
+                try:
+                    result = collection.bulk_write(operations, ordered=False)
+                    total_upserted += result.upserted_count
+                    total_matched  += result.matched_count
+                    total_modified += result.modified_count
+                    break  
+                except Exception as e:
+                    logger.warning(
+                        f"  Sub-batch {i//UPSERT_BATCH_SIZE + 1} "
+                        f"attempt {attempt}/{MAX_RETRIES} failed: {e}"
+                    )
+                    if attempt == MAX_RETRIES:
+                        raise
+                    time.sleep(RETRY_DELAY * attempt)
+
+        logger.info(
+            f"Upserted: {total_upserted} new, "
+            f"Matched: {total_matched}, "
+            f"Modified: {total_modified}"
+        )
     
     def _validate(self, year: int) -> bool:
         """Validate BigQuery vs MongoDB counts"""
@@ -611,17 +632,24 @@ class SisuAggregatedLoader:
                 docs = [self._build_sisu_doc(row) for row in page]
                 logger.info(f"  Prepared {len(docs)} documents")
 
-                operations = [
-                    ReplaceOne({"_id": doc["_id"]}, doc, upsert=True)
-                    for doc in docs
-                ]
-                result = collection.bulk_write(operations, ordered=False)
+                # Sub-batches com retry para evitar timeout no Atlas
+                import time
+                UPSERT_BATCH_SIZE = 500
+                MAX_RETRIES = 3
+                for i in range(0, len(docs), UPSERT_BATCH_SIZE):
+                    sub = docs[i: i + UPSERT_BATCH_SIZE]
+                    ops = [ReplaceOne({"_id": d["_id"]}, d, upsert=True) for d in sub]
+                    for attempt in range(1, MAX_RETRIES + 1):
+                        try:
+                            result = collection.bulk_write(ops, ordered=False)
+                            break
+                        except Exception as e:
+                            logger.warning(f"  SISU sub-batch attempt {attempt}/{MAX_RETRIES}: {e}")
+                            if attempt == MAX_RETRIES:
+                                raise
+                            time.sleep(5 * attempt)
 
-                logger.info(
-                    f"  Upserted: {result.upserted_count} new, "
-                    f"Matched: {result.matched_count}, "
-                    f"Modified: {result.modified_count}"
-                )
+                logger.info(f"  Page {page_num} written")
                 total_processed += len(docs)
 
             logger.info(f"\n  sisu_aggregated load complete: {total_processed:,} documents")

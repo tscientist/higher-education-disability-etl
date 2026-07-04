@@ -12,9 +12,11 @@ class MongoDBClient:
             # Primeiro tenta com verificação de certificado
             self.client = MongoClient(
                 MONGO_URI,
-                serverSelectionTimeoutMS=30000,
-                connectTimeoutMS=30000,
-                socketTimeoutMS=30000
+                serverSelectionTimeoutMS=60000,
+                connectTimeoutMS=60000,
+                socketTimeoutMS=300000,   # 5 min — bulk writes de docs grandes
+                maxPoolSize=10,
+                retryWrites=True,
             )
             # Test connection
             self.client.admin.command('ping')
@@ -27,9 +29,11 @@ class MongoDBClient:
                 self.client = MongoClient(
                     MONGO_URI,
                     tlsInsecure=True,
-                    serverSelectionTimeoutMS=30000,
-                    connectTimeoutMS=30000,
-                    socketTimeoutMS=30000
+                    serverSelectionTimeoutMS=60000,
+                    connectTimeoutMS=60000,
+                    socketTimeoutMS=300000,   # 5 min — bulk writes de docs grandes
+                    maxPoolSize=10,
+                    retryWrites=True,
                 )
                 # Test connection
                 self.client.admin.command('ping')
