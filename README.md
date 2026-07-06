@@ -20,11 +20,11 @@ No entanto, os dados necessários para essa análise estão distribuídos em bas
 
 Por isso, não é simples responder diretamente perguntas como:
 
-* Como evoluiu o número de matrículas de estudantes com deficiência ao longo dos anos?
-* Quais regiões e UFs concentram mais estudantes PcD no ensino superior?
-* Existem diferenças entre cursos presenciais e cursos EAD?
-* Como a taxa de conclusão de estudantes PcD se compara com a taxa geral?
-* Como se comporta o funil de acesso pelo SISU para candidatos PcD?
+- Como evoluiu o número de matrículas de estudantes com deficiência ao longo dos anos?
+- Quais regiões e UFs concentram mais estudantes PcD no ensino superior?
+- Existem diferenças entre cursos presenciais e cursos EAD?
+- Como a taxa de conclusão de estudantes PcD se compara com a taxa geral?
+- Como se comporta o funil de acesso pelo SISU para candidatos PcD?
 
 A aplicação proposta busca resolver esse problema organizando os dados em uma estrutura mais simples de consultar, analisar e visualizar.
 
@@ -32,10 +32,10 @@ A aplicação proposta busca resolver esse problema organizando os dados em uma 
 
 A aplicação é voltada para:
 
-* estudantes e pesquisadores interessados em inclusão educacional;
-* gestores públicos e profissionais da educação;
-* pessoas interessadas em políticas públicas de acessibilidade e ensino superior;
-* usuários que desejam consultar indicadores agregados sobre estudantes PcD no ensino superior brasileiro.
+- estudantes e pesquisadores interessados em inclusão educacional;
+- gestores públicos e profissionais da educação;
+- pessoas interessadas em políticas públicas de acessibilidade e ensino superior;
+- usuários que desejam consultar indicadores agregados sobre estudantes PcD no ensino superior brasileiro.
 
 ### Solução Proposta
 
@@ -96,20 +96,20 @@ higher-education-disability.ppgti_etl
 
 O Censo da Educação Superior será usado para obter:
 
-* dados dos cursos;
-* dados das instituições de ensino superior;
-* região, UF e município;
-* organização acadêmica;
-* categoria administrativa;
-* modalidade de ensino;
-* número de vagas;
-* número de inscritos;
-* número de ingressantes;
-* número de matrículas;
-* número de concluintes;
-* indicadores relacionados a estudantes com deficiência;
-* indicadores de reserva de vaga;
-* indicadores de apoio social, PARFOR, mobilidade e atividades extracurriculares.
+- dados dos cursos;
+- dados das instituições de ensino superior;
+- região, UF e município;
+- organização acadêmica;
+- categoria administrativa;
+- modalidade de ensino;
+- número de vagas;
+- número de inscritos;
+- número de ingressantes;
+- número de matrículas;
+- número de concluintes;
+- indicadores relacionados a estudantes com deficiência;
+- indicadores de reserva de vaga;
+- indicadores de apoio social, PARFOR, mobilidade e atividades extracurriculares.
 
 ### Cobertura Temporal Utilizada
 
@@ -159,14 +159,14 @@ higher-education-disability.ppgti_etl.stg_sisu_microdados
 
 Os dados do SISU serão usados para analisar:
 
-* demanda de candidatos;
-* candidatos inscritos;
-* candidatos aprovados;
-* situação de matrícula;
-* modalidade de concorrência;
-* notas;
-* funil de acesso para candidatos PcD;
-* possível relação entre demanda no SISU e matrículas PcD registradas no Censo.
+- demanda de candidatos;
+- candidatos inscritos;
+- candidatos aprovados;
+- situação de matrícula;
+- modalidade de concorrência;
+- notas;
+- funil de acesso para candidatos PcD;
+- possível relação entre demanda no SISU e matrículas PcD registradas no Censo.
 
 ### Cobertura Temporal Utilizada
 
@@ -190,12 +190,12 @@ Por esse motivo, o modelo final no MongoDB não deve armazenar dados pessoais id
 
 O projeto segue os princípios de:
 
-* minimização de dados;
-* finalidade;
-* agregação;
-* anonimização;
-* descarte de campos pessoais não necessários;
-* uso dos dados apenas para fins acadêmicos e analíticos.
+- minimização de dados;
+- finalidade;
+- agregação;
+- anonimização;
+- descarte de campos pessoais não necessários;
+- uso dos dados apenas para fins acadêmicos e analíticos.
 
 Os documentos finais devem armazenar apenas indicadores agregados, como totais por ano, UF, instituição, curso, modalidade e tipo de concorrência. Campos pessoais devem ser descartados durante o ETL ou mantidos apenas de forma temporária durante o processamento local, se forem estritamente necessários.
 
@@ -262,13 +262,13 @@ Como evoluiu o número de matrículas de estudantes com deficiência no ensino s
 
 Consulta esperada:
 
-* agregação por ano;
-* soma das matrículas PcD.
+- agregação por ano;
+- soma das matrículas PcD.
 
 Elemento esperado na aplicação:
 
-* série temporal;
-* endpoint de evolução anual.
+- série temporal;
+- endpoint de evolução anual.
 
 ### Pergunta 2
 
@@ -276,15 +276,15 @@ Quais regiões e UFs concentram maior quantidade de matrículas PcD?
 
 Consulta esperada:
 
-* agregação por região e UF;
-* soma das matrículas PcD;
-* cálculo do percentual de matrículas PcD sobre o total de matrículas.
+- agregação por região e UF;
+- soma das matrículas PcD;
+- cálculo do percentual de matrículas PcD sobre o total de matrículas.
 
 Elemento esperado na aplicação:
 
-* mapa;
-* ranking;
-* tabela interativa.
+- mapa;
+- ranking;
+- tabela interativa.
 
 ### Pergunta 3
 
@@ -292,13 +292,13 @@ A distribuição de estudantes PcD muda entre cursos presenciais e cursos EAD?
 
 Consulta esperada:
 
-* agregação por modalidade de ensino;
-* combinação opcional com categoria administrativa da instituição.
+- agregação por modalidade de ensino;
+- combinação opcional com categoria administrativa da instituição.
 
 Elemento esperado na aplicação:
 
-* gráfico comparativo;
-* endpoint agrupado por modalidade.
+- gráfico comparativo;
+- endpoint agrupado por modalidade.
 
 ### Pergunta 4
 
@@ -306,14 +306,14 @@ Quais categorias administrativas de IES apresentam maior participação de estud
 
 Consulta esperada:
 
-* agrupamento por categoria administrativa;
-* soma de matrículas gerais;
-* soma de matrículas PcD;
-* cálculo do percentual de participação PcD.
+- agrupamento por categoria administrativa;
+- soma de matrículas gerais;
+- soma de matrículas PcD;
+- cálculo do percentual de participação PcD.
 
 Elemento esperado na aplicação:
 
-* ranking por categoria administrativa.
+- ranking por categoria administrativa.
 
 ### Pergunta 5
 
@@ -321,14 +321,14 @@ Como se compara a taxa de conclusão geral com a taxa de conclusão PcD por regi
 
 Consulta esperada:
 
-* agregação por região;
-* cálculo da taxa de conclusão geral;
-* cálculo da taxa de conclusão PcD.
+- agregação por região;
+- cálculo da taxa de conclusão geral;
+- cálculo da taxa de conclusão PcD.
 
 Elemento esperado na aplicação:
 
-* tabela comparativa;
-* gráfico de barras.
+- tabela comparativa;
+- gráfico de barras.
 
 ### Pergunta 6
 
@@ -336,15 +336,15 @@ Em quais UFs a taxa de perda PcD é maior em comparação com a taxa de perda ge
 
 Consulta esperada:
 
-* agregação por UF;
-* cálculo da taxa de perda geral;
-* cálculo da taxa de perda PcD;
-* comparação entre os dois indicadores.
+- agregação por UF;
+- cálculo da taxa de perda geral;
+- cálculo da taxa de perda PcD;
+- comparação entre os dois indicadores.
 
 Elemento esperado na aplicação:
 
-* ranking de UFs;
-* filtros por ano.
+- ranking de UFs;
+- filtros por ano.
 
 ### Pergunta 7
 
@@ -352,14 +352,14 @@ Como o funil de acesso pelo SISU se comporta para candidatos PcD?
 
 Consulta esperada:
 
-* agregação dos dados do SISU por ano;
-* contagem de inscritos PcD;
-* contagem de aprovados PcD;
-* contagem de matriculados PcD.
+- agregação dos dados do SISU por ano;
+- contagem de inscritos PcD;
+- contagem de aprovados PcD;
+- contagem de matriculados PcD.
 
 Elemento esperado na aplicação:
 
-* funil de acesso por ano.
+- funil de acesso por ano.
 
 ### Pergunta 8
 
@@ -367,13 +367,13 @@ Existe relação entre a demanda por vagas PcD no SISU e as matrículas PcD regi
 
 Consulta esperada:
 
-* comparação agregada entre SISU e Censo;
-* agrupamento por ano, UF, IES e curso, quando houver correspondência suficiente.
+- comparação agregada entre SISU e Censo;
+- agrupamento por ano, UF, IES e curso, quando houver correspondência suficiente.
 
 Elemento esperado na aplicação:
 
-* tabela comparativa;
-* endpoint entre demanda e matrícula efetiva.
+- tabela comparativa;
+- endpoint entre demanda e matrícula efetiva.
 
 ## 5. Modelo Conceitual
 
@@ -383,16 +383,16 @@ O modelo conceitual representa as principais entidades usadas pela aplicação e
 
 As principais classes do modelo são:
 
-* InstituicaoEnsinoSuperior;
-* RegistroCensoIES;
-* Localizacao;
-* Endereco;
-* Curso;
-* IndicadoresAluno;
-* IndicadoresDeficienciaAluno;
-* IndicadoresPermanencia;
-* ReservaVaga;
-* DadosSisu.
+- InstituicaoEnsinoSuperior;
+- RegistroCensoIES;
+- Localizacao;
+- Endereco;
+- Curso;
+- IndicadoresAluno;
+- IndicadoresDeficienciaAluno;
+- IndicadoresPermanencia;
+- ReservaVaga;
+- DadosSisu.
 
 ### InstituicaoEnsinoSuperior
 
@@ -400,11 +400,11 @@ Representa uma instituição de ensino superior.
 
 Principais propriedades:
 
-* coIes;
-* nome;
-* sigla;
-* anosDisponiveis;
-* registrosCenso.
+- coIes;
+- nome;
+- sigla;
+- anosDisponiveis;
+- registrosCenso.
 
 ### RegistroCensoIES
 
@@ -412,15 +412,15 @@ Representa as informações anuais da instituição no Censo.
 
 Principais propriedades:
 
-* ano;
-* tipoOrganizacaoAcademica;
-* tipoCategoriaAdministrativa;
-* tipoRede;
-* capital;
-* comunitaria;
-* confessional;
-* localizacao;
-* endereco.
+- ano;
+- tipoOrganizacaoAcademica;
+- tipoCategoriaAdministrativa;
+- tipoRede;
+- capital;
+- comunitaria;
+- confessional;
+- localizacao;
+- endereco.
 
 ### Localizacao
 
@@ -428,13 +428,13 @@ Representa os dados geográficos da instituição.
 
 Principais propriedades:
 
-* codigoRegiao;
-* regiao;
-* codigoUf;
-* nomeUf;
-* uf;
-* idMunicipio;
-* municipio.
+- codigoRegiao;
+- regiao;
+- codigoUf;
+- nomeUf;
+- uf;
+- idMunicipio;
+- municipio.
 
 ### Endereco
 
@@ -442,11 +442,11 @@ Representa os dados de endereço da instituição.
 
 Principais propriedades:
 
-* logradouro;
-* numero;
-* complemento;
-* bairro;
-* cep.
+- logradouro;
+- numero;
+- complemento;
+- bairro;
+- cep.
 
 ### Curso
 
@@ -454,18 +454,18 @@ Representa um curso ofertado por uma instituição em determinado ano.
 
 Principais propriedades:
 
-* coCurso;
-* ano;
-* coIes;
-* nomeCurso;
-* grauAcademico;
-* modalidadeEnsino;
-* nivelAcademico;
-* areaCine;
-* indicadoresAluno;
-* indicadoresDeficienciaAluno;
-* indicadoresPermanencia;
-* sisu.
+- coCurso;
+- ano;
+- coIes;
+- nomeCurso;
+- grauAcademico;
+- modalidadeEnsino;
+- nivelAcademico;
+- areaCine;
+- indicadoresAluno;
+- indicadoresDeficienciaAluno;
+- indicadoresPermanencia;
+- sisu.
 
 ### IndicadoresAluno
 
@@ -473,9 +473,9 @@ Representa os indicadores gerais de alunos do curso.
 
 Principais propriedades:
 
-* ingressantes;
-* matriculados;
-* concluintes.
+- ingressantes;
+- matriculados;
+- concluintes.
 
 ### IndicadoresDeficienciaAluno
 
@@ -483,10 +483,10 @@ Representa os indicadores relacionados a estudantes com deficiência.
 
 Principais propriedades:
 
-* alunosDeficiencia;
-* ingressantesDeficiencia;
-* matriculadosDeficiencia;
-* concluintesDeficiencia.
+- alunosDeficiencia;
+- ingressantesDeficiencia;
+- matriculadosDeficiencia;
+- concluintesDeficiencia.
 
 ### IndicadoresPermanencia
 
@@ -494,14 +494,14 @@ Representa indicadores de permanência, apoio e participação acadêmica.
 
 Principais propriedades:
 
-* apoioSocial;
-* ingressantesApoioSocial;
-* matriculadosApoioSocial;
-* concluintesApoioSocial;
-* atividadeExtracurricular;
-* mobilidadeAcademica;
-* parfor;
-* reservasVagas.
+- apoioSocial;
+- ingressantesApoioSocial;
+- matriculadosApoioSocial;
+- concluintesApoioSocial;
+- atividadeExtracurricular;
+- mobilidadeAcademica;
+- parfor;
+- reservasVagas.
 
 ### ReservaVaga
 
@@ -509,10 +509,10 @@ Representa indicadores por tipo de reserva de vaga.
 
 Principais propriedades:
 
-* tipoReserva;
-* ingressantes;
-* matriculados;
-* concluintes.
+- tipoReserva;
+- ingressantes;
+- matriculados;
+- concluintes.
 
 ### DadosSisu
 
@@ -520,30 +520,30 @@ Representa os indicadores agregados do SISU associados a um curso.
 
 Principais propriedades:
 
-* inscricoesTotal;
-* aprovadosRegular;
-* matriculadosFinal;
-* perdaVagaBurocracia;
-* notaCandidatoMediaGeral;
-* notaCorteMediaRegular;
-* inscricoesPcd;
-* aprovadosPcdRegular;
-* matriculadosPcdFinal;
-* perdaVagaPcdBurocracia;
-* notaCandidatoMediaPcd;
-* notaCorteMediaPcdRegular.
+- inscricoesTotal;
+- aprovadosRegular;
+- matriculadosFinal;
+- perdaVagaBurocracia;
+- notaCandidatoMediaGeral;
+- notaCorteMediaRegular;
+- inscricoesPcd;
+- aprovadosPcdRegular;
+- matriculadosPcdFinal;
+- perdaVagaPcdBurocracia;
+- notaCandidatoMediaPcd;
+- notaCorteMediaPcdRegular.
 
 ### Relacionamentos Conceituais
 
-* Uma instituição possui vários registros anuais do Censo.
-* Cada registro anual da instituição possui uma localização.
-* Cada registro anual da instituição possui um endereço.
-* Uma instituição pode possuir muitos cursos.
-* Um curso possui um conjunto de indicadores gerais de alunos.
-* Um curso pode possuir indicadores de deficiência.
-* Um curso pode possuir indicadores de permanência.
-* Um documento de indicadores de permanência pode possuir vários tipos de reserva de vaga.
-* Um curso pode possuir um documento opcional com dados agregados do SISU.
+- Uma instituição possui vários registros anuais do Censo.
+- Cada registro anual da instituição possui uma localização.
+- Cada registro anual da instituição possui um endereço.
+- Uma instituição pode possuir muitos cursos.
+- Um curso possui um conjunto de indicadores gerais de alunos.
+- Um curso pode possuir indicadores de deficiência.
+- Um curso pode possuir indicadores de permanência.
+- Um documento de indicadores de permanência pode possuir vários tipos de reserva de vaga.
+- Um curso pode possuir um documento opcional com dados agregados do SISU.
 
 ## 6. Projeto do Banco Orientado a Documentos
 
@@ -604,9 +604,9 @@ O modelo utiliza embedding quando os dados são pequenos, dependentes e frequent
 | IndicadoresPermanencia.mobilidadeAcademica      | QT_MOB_ACADEMICA                                                                         | Integer opcional            |
 | IndicadoresPermanencia.parfor                   | QT_PARFOR                                                                                | Integer opcional            |
 | ReservaVaga.tipoReserva                         | Derivado dos sufixos RVPPI, RVQUILO, RVREFU, RVPOVT, RVIDOSO, RVINTERN, RVMEDAL, RVTRANS | String                      |
-| ReservaVaga.ingressantes                        | Campos QT_ING_RV*                                                                        | Integer opcional            |
-| ReservaVaga.matriculados                        | Campos QT_MAT_RV*                                                                        | Integer opcional            |
-| ReservaVaga.concluintes                         | Campos QT_CONC_RV*                                                                       | Integer opcional            |
+| ReservaVaga.ingressantes                        | Campos QT_ING_RV\*                                                                       | Integer opcional            |
+| ReservaVaga.matriculados                        | Campos QT_MAT_RV\*                                                                       | Integer opcional            |
+| ReservaVaga.concluintes                         | Campos QT_CONC_RV\*                                                                      | Integer opcional            |
 | DadosSisu.inscricoesTotal                       | sisu_inscricoes_total                                                                    | Integer opcional            |
 | DadosSisu.aprovadosRegular                      | sisu_aprovados_regular                                                                   | Integer opcional            |
 | DadosSisu.matriculadosFinal                     | sisu_matriculados_final                                                                  | Integer opcional            |
@@ -816,6 +816,238 @@ FROM origem;
 ```
 
 Somente as tabelas de destino são criadas ou substituídas.
+
+## 7. Dashboard Streamlit e API REST
+
+Alem do pipeline ETL, o projeto possui uma camada de visualizacao em Streamlit e uma API REST para permitir que outros dashboards ou aplicacoes consumam as mesmas consultas MongoDB.
+
+### Pre-requisitos
+
+- MongoDB rodando localmente, via Docker ou em ambiente cloud.
+- Banco `higher_education` com a colecao principal `gold_course_indicators` carregada.
+- Python 3.11+.
+- Ambiente virtual Python recomendado.
+
+### Instalacao das Dependencias do Dashboard/API
+
+A partir da raiz do projeto:
+
+```bash
+cd dashboard
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+No Linux/macOS, a ativacao do ambiente virtual fica:
+
+```bash
+source .venv/bin/activate
+```
+
+### Executar a API REST
+
+A API usa FastAPI e expoe um endpoint para cada pergunta analitica, alem de healthcheck e documentacao interativa.
+
+```bash
+cd dashboard
+.venv\Scripts\python -m uvicorn api:app --host 127.0.0.1 --port 8000
+```
+
+No Linux/macOS:
+
+```bash
+python -m uvicorn api:app --host 127.0.0.1 --port 8000
+```
+
+Portas e URLs da API:
+
+```text
+API:        http://127.0.0.1:8000
+Docs API:   http://127.0.0.1:8000/docs
+Healthcheck: http://127.0.0.1:8000/health
+```
+
+Para validar que a API esta rodando:
+
+```bash
+curl http://127.0.0.1:8000/health
+curl http://127.0.0.1:8000/api/v1/perguntas/1
+```
+
+Endpoints principais:
+
+```text
+GET  /health
+GET  /api/v1/opcoes
+GET  /api/v1/resumo
+GET  /api/v1/perguntas/1
+GET  /api/v1/perguntas/2?nivel=uf
+GET  /api/v1/perguntas/2?nivel=regiao
+GET  /api/v1/perguntas/2?nivel=ambos
+GET  /api/v1/perguntas/3
+GET  /api/v1/perguntas/4
+GET  /api/v1/perguntas/5
+GET  /api/v1/perguntas/6
+GET  /api/v1/perguntas/7
+GET  /api/v1/perguntas/8
+GET  /api/v1/perguntas/8?usar_lookup=true
+GET  /api/v1/cursos
+GET  /api/v1/sisu/demografia/sexo
+GET  /api/v1/explain?ano=2022&uf=SP
+POST /api/v1/indices
+```
+
+### Dicionario de Parametros
+
+Alguns filtros da API e do dashboard usam codigos categóricos vindos do Censo da Educacao Superior. Use os valores abaixo ao consultar endpoints como `/api/v1/resumo`, `/api/v1/cursos` ou filtros equivalentes do dashboard.
+
+#### Modalidade de ensino
+
+Campo no MongoDB: `curso.tipoModalidadeEnsino`.
+
+| Codigo | Significado |
+| --- | --- |
+| `1` | Presencial |
+| `2` | Educacao a distancia / EAD |
+
+Exemplo:
+
+```text
+GET /api/v1/resumo?ano=2022&modalidade=2
+```
+
+#### Categoria administrativa da IES
+
+Campo no MongoDB: `ies.tipoCategoriaAdministrativa`.
+
+| Codigo | Significado |
+| --- | --- |
+| `1` | Publica Federal |
+| `2` | Publica Estadual |
+| `3` | Publica Municipal |
+| `4` | Privada com fins lucrativos |
+| `5` | Privada sem fins lucrativos |
+| `7` | Especial |
+
+Exemplo:
+
+```text
+GET /api/v1/resumo?ano=2022&categoria=4
+```
+
+#### Grau academico
+
+Campo no MongoDB: `curso.tipoGrauAcademico`.
+
+| Codigo | Significado |
+| --- | --- |
+| `0` | Nao aplicavel / nao informado |
+| `1` | Bacharelado |
+| `2` | Licenciatura |
+| `3` | Tecnologico |
+
+#### Nivel academico
+
+Campo no MongoDB: `curso.tipoNivelAcademico`.
+
+| Codigo | Significado |
+| --- | --- |
+| `1` | Graduacao |
+| `2` | Sequencial de formacao especifica |
+
+#### UF e regiao
+
+Campo no MongoDB: `uf`. A regiao e derivada pela aplicacao a partir da UF.
+
+| Regiao | UFs |
+| --- | --- |
+| Norte | `AC`, `AP`, `AM`, `PA`, `RO`, `RR`, `TO` |
+| Nordeste | `AL`, `BA`, `CE`, `MA`, `PB`, `PE`, `PI`, `RN`, `SE` |
+| Centro-Oeste | `DF`, `GO`, `MT`, `MS` |
+| Sudeste | `ES`, `MG`, `RJ`, `SP` |
+| Sul | `PR`, `RS`, `SC` |
+
+Exemplo:
+
+```text
+GET /api/v1/perguntas/8?ano=2022&uf=SP
+```
+
+#### Parametro `nivel` da pergunta 2
+
+Endpoint: `GET /api/v1/perguntas/2`.
+
+| Valor | Resultado |
+| --- | --- |
+| `uf` | Retorna agregacao por UF. |
+| `regiao` | Retorna agregacao por regiao brasileira. |
+| `ambos` | Retorna UF e regiao na mesma resposta. |
+
+Exemplo:
+
+```text
+GET /api/v1/perguntas/2?ano=2022&nivel=ambos
+```
+
+#### Parametro `usar_lookup` da pergunta 8
+
+Endpoint: `GET /api/v1/perguntas/8`.
+
+| Valor | Resultado |
+| --- | --- |
+| `false` | Usa o bloco SISU embutido em `gold_course_indicators`. |
+| `true` | Usa `$lookup` com a colecao `sisu_aggregated`. |
+
+Exemplo:
+
+```text
+GET /api/v1/perguntas/8?ano=2022&uf=SP&usar_lookup=true
+```
+
+Observacao: os codigos acima refletem os valores encontrados nas colecoes carregadas no MongoDB local e seguem a codificacao do Censo da Educacao Superior usada pelo ETL.
+
+### Executar o Dashboard Streamlit
+
+Em outro terminal, a partir da raiz do projeto:
+
+```bash
+dashboard\.venv\Scripts\python -m streamlit run dashboard\app.py --server.port 8501
+```
+
+Ou, entrando na pasta `dashboard`:
+
+```bash
+cd dashboard
+.venv\Scripts\python -m streamlit run app.py --server.port 8501
+```
+
+No Linux/macOS:
+
+```bash
+python -m streamlit run app.py --server.port 8501
+```
+
+Porta e URL do dashboard:
+
+```text
+Dashboard: http://127.0.0.1:8501
+```
+
+### Validacao Manual
+
+1. Acesse `http://127.0.0.1:8000/health` e confirme `status: ok`.
+2. Acesse `http://127.0.0.1:8000/docs` para testar os endpoints pela interface Swagger.
+3. Acesse `http://127.0.0.1:8501` para abrir o dashboard Streamlit.
+4. No dashboard, confira se os cards da aba `Visao geral` carregam.
+5. Na aba `Tecnico / Indices`, use o botao de criacao de indices e verifique o `explain`.
+
+### Observacoes
+
+- O dashboard e a API leem diretamente do MongoDB configurado no `.env`.
+- A colecao principal esperada e `gold_course_indicators`.
+- A colecao `sisu_aggregated` e usada principalmente para demonstrar consultas com `$lookup`; se ela estiver vazia, os endpoints continuam funcionando, mas as respostas de lookup podem vir sem correspondencias.
+- Se alterar o `.env`, reinicie a API e o dashboard para recarregar as variaveis.
 
 ## Arquivos de Suporte
 
