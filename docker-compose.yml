@@ -20,29 +20,6 @@ services:
     networks:
       - etl-network
 
-  python-etl:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: higher-education-etl
-    depends_on:
-      mongodb:
-        condition: service_healthy
-    environment:
-      GCP_PROJECT_ID: ${GCP_PROJECT_ID}
-      GCP_CREDENTIALS_PATH: /app/credentials.json
-      MONGO_URI: mongodb://admin:password@mongodb:27017
-      MONGO_DATABASE: higher_education
-      MONGO_COLLECTION: students
-      BIGQUERY_DATASET: ${BIGQUERY_DATASET}
-      BIGQUERY_TABLE: ${BIGQUERY_TABLE}
-    volumes:
-      - .:/app
-      - ./credentials.json:/app/credentials.json:ro
-    networks:
-      - etl-network
-    command: python main.py
-
 volumes:
   mongo_data:
 
