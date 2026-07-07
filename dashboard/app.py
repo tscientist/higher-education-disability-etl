@@ -123,7 +123,17 @@ except Exception as exc:
 
 anos, ufs, modalidades, categorias = load_options()
 if not anos:
-    st.warning("Nenhum ano encontrado em gold_course_indicators.")
+    st.warning(
+        "Nenhum dado encontrado na coleção **gold_cursos_sisu**. "
+        "Execute o pipeline para popular o banco antes de usar o dashboard:"
+    )
+    st.code(
+        "# 1. Carregar dados brutos do BigQuery → MongoDB\n"
+        "python src/mongo/load_dados.py --table all --drop-existing\n\n"
+        "# 2. Construir a coleção gold\n"
+        "python src/mongo/build_gold_cursos_sisu.py --drop-existing",
+        language="bash",
+    )
     st.stop()
 
 st.sidebar.title("Filtros")
@@ -140,7 +150,7 @@ modalidade = st.sidebar.selectbox("Modalidade", ["Todas"] + modalidades)
 categoria = st.sidebar.selectbox("Categoria administrativa", ["Todas"] + categorias)
 
 st.title("Educacao Superior PcD")
-st.caption(f"Banco: {get_database_name()} | Colecoes: gold_course_indicators e sisu_aggregated")
+st.caption(f"Banco: {get_database_name()} | Colecoes: gold_cursos_sisu e sisu")
 
 PERGUNTAS = {
     "visao_geral": "Visao geral dos indicadores carregados no MongoDB para os filtros selecionados.",
@@ -357,15 +367,15 @@ with tabs[8]:
         st.dataframe(df, use_container_width=True, hide_index=True)
 
     lookup_df = df_from(cached_lookup(ano_query, uf))
-    st.subheader("$lookup: gold_course_indicators -> sisu_aggregated")
+    st.subheader("$lookup: gold_cursos_sisu → sisu")
     st.dataframe(lookup_df, use_container_width=True, hide_index=True)
 
 with tabs[9]:
     mostrar_pergunta("tecnico")
     counts = collection_counts()
     col_a, col_b = st.columns(2)
-    col_a.metric("gold_course_indicators", moneyless_int(counts.get("gold_course_indicators")))
-    col_b.metric("sisu_aggregated", moneyless_int(counts.get("sisu_aggregated")))
+    col_a.metric("gold_cursos_sisu", moneyless_int(counts.get("gold_cursos_sisu")))
+    col_b.metric("sisu", moneyless_int(counts.get("sisu")))
 
     if st.button("Criar indices"):
         created = q.create_indexes()
