@@ -2,6 +2,7 @@ import os
 from functools import lru_cache
 from pathlib import Path
 
+import certifi
 from dotenv import load_dotenv
 from pymongo import MongoClient
 
@@ -12,8 +13,9 @@ PROJECT_ROOT = BASE_DIR.parent
 load_dotenv(PROJECT_ROOT / ".env")
 load_dotenv(BASE_DIR / ".env")
 
-GOLD_COLLECTION = "gold_course_indicators"
-SISU_COLLECTION = "sisu_aggregated"
+# Coleções do novo pipeline (src/mongo/)
+GOLD_COLLECTION = "gold_cursos_sisu"
+SISU_COLLECTION = "sisu"
 
 
 def get_mongo_uri():
@@ -36,6 +38,7 @@ def get_database_name():
 def get_client():
     return MongoClient(
         get_mongo_uri(),
+        tlsCAFile=certifi.where(),
         serverSelectionTimeoutMS=10000,
         connectTimeoutMS=10000,
         socketTimeoutMS=30000,
@@ -59,7 +62,8 @@ def ping():
     return True
 
 
-def collection_counts():
+def collection_counts() -> dict:
+    """Retorna o count de documentos das coleções principais."""
     db = get_db()
     return {
         GOLD_COLLECTION: db[GOLD_COLLECTION].count_documents({}),

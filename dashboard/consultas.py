@@ -469,7 +469,8 @@ def get_demanda_sisu_vs_matriculas_censo(ano=None, uf=None):
     return _as_list(get_gold_collection().aggregate(pipeline))
 
 
-# Requisito $lookup: relacionamento por referencia com sisu_aggregated.
+# Requisito $lookup: relacionamento por referencia com coleção sisu (novo pipeline).
+# A coleção 'sisu' contém microdados brutos — o lookup agrega em pipeline.
 def get_demanda_sisu_vs_censo_lookup(ano=None, uf=None):
     match = _year_match(ano=ano)
     if uf and uf != "Todos":
@@ -490,30 +491,49 @@ def get_demanda_sisu_vs_censo_lookup(ano=None, uf=None):
                             "$expr": {
                                 "$and": [
                                     {"$eq": ["$ano", "$$v_ano"]},
-                                    {
-                                        "$or": [
-                                            {"$eq": ["$id_ies", "$$v_id_ies"]},
-                                            {"$eq": ["$idIes", "$$v_id_ies"]},
-                                        ]
-                                    },
-                                    {
-                                        "$or": [
-                                            {"$eq": ["$id_curso", "$$v_id_curso"]},
-                                            {"$eq": ["$idCurso", "$$v_id_curso"]},
-                                        ]
-                                    },
+                                    {"$eq": [{"$toString": "$id_ies"}, "$$v_id_ies"]},
+                                    {"$eq": [{"$toString": "$id_curso"}, "$$v_id_curso"]},
                                 ]
                             }
                         }
                     },
                     {
+                        "$group": {
+                            "_id": None,
+                            "inscricoesPcd": {"$sum": {
+                                "$cond": [{"$or": [
+                                    {"$regexMatch": {"input": {"$toLower": {"$ifNull": ["$modalidade_concorrencia", ""]}}, "regex": "defici"}},
+                                    {"$regexMatch": {"input": {"$toLower": {"$ifNull": ["$tipo_cota", ""]}}, "regex": "defici|pcd"}},
+                                ]}, 1, 0]
+                            }},
+                            "aprovadosPcd": {"$sum": {"$cond": [
+                                {"$and": [
+                                    {"$eq": ["$status_aprovado", True]},
+                                    {"$or": [
+                                        {"$regexMatch": {"input": {"$toLower": {"$ifNull": ["$modalidade_concorrencia", ""]}}, "regex": "defici"}},
+                                        {"$regexMatch": {"input": {"$toLower": {"$ifNull": ["$tipo_cota", ""]}}, "regex": "defici|pcd"}},
+                                    ]},
+                                ]},
+                                1, 0
+                            ]}},
+                            "matriculadosPcd": {"$sum": {"$cond": [
+                                {"$and": [
+                                    {"$regexMatch": {"input": {"$toLower": {"$ifNull": ["$status_matricula", ""]}}, "regex": "matriculado"}},
+                                    {"$or": [
+                                        {"$regexMatch": {"input": {"$toLower": {"$ifNull": ["$modalidade_concorrencia", ""]}}, "regex": "defici"}},
+                                        {"$regexMatch": {"input": {"$toLower": {"$ifNull": ["$tipo_cota", ""]}}, "regex": "defici|pcd"}},
+                                    ]},
+                                ]},
+                                1, 0
+                            ]}},
+                        }
+                    },
+                    {
                         "$project": {
                             "_id": 0,
-                            "inscricoesPcd": {"$ifNull": ["$inscricoes_pcd", "$inscricoesPcd"]},
-                            "aprovadosPcd": {"$ifNull": ["$aprovados_pcd", "$aprovadosPcdRegular"]},
-                            "matriculadosPcd": {
-                                "$ifNull": ["$matriculados_pcd_final", "$matriculadosPcdFinal"]
-                            },
+                            "inscricoesPcd": 1,
+                            "aprovadosPcd": 1,
+                            "matriculadosPcd": 1,
                         }
                     },
                 ],
@@ -539,7 +559,7 @@ def get_demanda_sisu_vs_censo_lookup(ano=None, uf=None):
         {"$sort": {"sisuInscricoesPcd": -1}},
         {"$limit": 500},
     ]
-    return _as_list(get_gold_collection().aggregate(pipeline))
+    return _as_list(get_gold_collection().aggregate(pipeline, allowDiskUse=True))
 
 
 # Requisito $elemMatch.
@@ -593,16 +613,11 @@ def create_indexes():
             name="idx_ano_ies_curso",
         )
     )
+    # coleção sisu (microdados brutos) — chave de join usada pelo $lookup
     created.append(
         sisu.create_index(
             [("ano", 1), ("id_ies", 1), ("id_curso", 1)],
-            name="idx_sisu_ano_ies_curso_snake",
-        )
-    )
-    created.append(
-        sisu.create_index(
-            [("ano", 1), ("idIes", 1), ("idCurso", 1)],
-            name="idx_sisu_ano_ies_curso_camel",
+            name="idx_sisu_ano_ies_curso",
         )
     )
     return created
