@@ -4,15 +4,17 @@
 
 - Python 3.11+
 - MongoDB 7.0+ (local, Docker ou Atlas)
-- Acesso ao BigQuery no projeto `higher-education-disability`
+- Acesso ao BigQuery no projeto `higher-education-disability-etl`
 
 ---
 
 ## 1. Ambiente Python
 
+> **Nota:** dependendo da instalação, use `python` ou `python3`. 
+
 ```zsh
-cd brazil-higher-education-disability-etl
-python -m venv .venv
+cd higher-education-disability-etl
+python3 -m venv .venv   # use python se python3 não estiver disponível
 source .venv/bin/activate
 pip install -r requirements.txt
 ```
