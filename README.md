@@ -116,13 +116,13 @@ O Censo da Educação Superior será usado para obter:
 No estágio atual do projeto, são carregados registros de:
 
 ```text
-2018 a 2022
+2022
 ```
 
 O filtro SQL utilizado é:
 
 ```sql
-WHERE ano BETWEEN 2018 AND 2022
+WHERE ano = 2022
 ```
 
 ### Tabelas de Staging Criadas
@@ -173,13 +173,13 @@ Os dados do SISU serão usados para analisar:
 No estágio atual do projeto, são carregados registros de:
 
 ```text
-2018 a 2022
+2022
 ```
 
 O filtro SQL utilizado é:
 
 ```sql
-WHERE ano BETWEEN 2018 AND 2022
+WHERE ano = 2022
 ```
 
 ## 3.3 Aspectos Legais e Éticos
@@ -203,10 +203,10 @@ Os documentos finais devem armazenar apenas indicadores agregados, como totais p
 
 | Fonte                                    | Conteúdo                                                                                                                              |                Volume Esperado | Formato               | Atualização | Uso                                       |
 | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | -----------------------------: | --------------------- | ----------- | ----------------------------------------- |
-| Censo da Educação Superior, tabela curso | Dados por curso, ano, instituição, localização, modalidade, vagas, inscritos, ingressantes, matrículas, concluintes e indicadores PcD | Mais de 3 milhões de registros | Tabela BigQuery / CSV | Anual       | Fonte principal do projeto                |
-| Censo da Educação Superior, tabela IES   | Dados das instituições, localização, organização acadêmica e categoria administrativa                                                 |       Mais de 10 mil registros | Tabela BigQuery / CSV | Anual       | Enriquecimento dos documentos             |
+| Censo da Educação Superior, tabela curso | Dados por curso, ano, instituição, localização, modalidade, vagas, inscritos, ingressantes, matrículas, concluintes e indicadores PcD |    Cerca de 573 mil registros (2022) | Tabela BigQuery / CSV | Anual       | Fonte principal do projeto                |
+| Censo da Educação Superior, tabela IES   | Dados das instituições, localização, organização acadêmica e categoria administrativa                                                 |        Cerca de 2,5 mil registros (2022) | Tabela BigQuery / CSV | Anual       | Enriquecimento dos documentos             |
 | Censo da Educação Superior, dicionário   | Descrições de campos categóricos                                                                                                      |                Tabela de apoio | Tabela BigQuery       | Anual       | Tradução de códigos e categorias          |
-| SISU, microdados                         | Dados do processo seletivo, curso, IES, modalidade de concorrência, aprovação, matrícula e notas                                      |  Mais de 1 milhão de registros | Tabela BigQuery / CSV | Por edição  | Fonte complementar para análise de acesso |
+| SISU, microdados                         | Dados do processo seletivo, curso, IES, modalidade de concorrência, aprovação, matrícula e notas                                      |  Cerca de 3,5 milhões de registros (2022) | Tabela BigQuery / CSV | Por edição  | Fonte complementar para análise de acesso |
 
 ## 3.5 Dicionário de Dados Inicial
 
@@ -665,157 +665,208 @@ O modelo utiliza embedding quando os dados são pequenos, dependentes e frequent
 
 ## 6.4 Exemplo de Documento: Instituição
 
+O documento abaixo representa um registro da coleção `ies`, carregada diretamente do Censo da Educação Superior.
+
 ```json
 {
-  "coIes": 1234,
-  "nome": "Instituto Federal da Paraíba",
+  "_id": "ObjectId(...)",
+  "ano": 2022,
+  "id_ies": "1196",
+  "nome": "Instituto Federal de Educação, Ciência e Tecnologia da Paraíba",
   "sigla": "IFPB",
-  "anosDisponiveis": [2018, 2019, 2020, 2021, 2022],
-  "registrosCenso": [
-    {
-      "ano": 2022,
-      "tipoOrganizacaoAcademica": 4,
-      "tipoCategoriaAdministrativa": 1,
-      "tipoRede": 1,
-      "capital": true,
-      "localizacao": {
-        "codigoRegiao": 2,
-        "regiao": "Nordeste",
-        "codigoUf": 25,
-        "nomeUf": "Paraíba",
-        "uf": "PB",
-        "idMunicipio": 2507507,
-        "municipio": "João Pessoa"
-      },
-      "endereco": {
-        "logradouro": "Avenida Exemplo",
-        "numero": "123",
-        "bairro": "Centro",
-        "cep": "58000000"
-      }
-    }
-  ]
+  "tipo_organizacao_academica": "Instituto Federal de Educação, Ciência e Tecnologia",
+  "tipo_categoria_administrativa": "Pública Federal",
+  "sigla_uf": "PB",
+  "id_municipio": "2507507",
+  "endereco": "Avenida Primeiro de Maio",
+  "numero": "720",
+  "complemento": "",
+  "bairro": "Jaguaribe",
+  "cep": "58015435"
 }
 ```
 
 ## 6.5 Exemplo de Documento: Curso
 
+O documento abaixo representa um registro da coleção analítica `gold_cursos_sisu`, que reúne dados do Censo e do SISU em um único documento por curso/campus.
+
 ```json
 {
+  "_id": "2022_1196_111266_2507507",
+  "schemaVersion": 1,
   "ano": 2022,
-  "coCurso": 5678,
-  "coIes": 1234,
+  "uf": "PB",
+  "idMunicipio": "2507507",
+  "ies": {
+    "idIes": "1196",
+    "nome": "Instituto Federal de Educação, Ciência e Tecnologia da Paraíba",
+    "sigla": "IFPB",
+    "tipoOrganizacaoAcademica": "Instituto Federal de Educação, Ciência e Tecnologia",
+    "tipoCategoriaAdministrativa": "Pública Federal",
+    "endereco": {
+      "logradouro": "Avenida Primeiro de Maio",
+      "numero": "720",
+      "complemento": "",
+      "bairro": "Jaguaribe",
+      "cep": "58015435"
+    }
+  },
   "curso": {
+    "idCurso": "111266",
     "nome": "Sistemas de Informação",
-    "grauAcademico": 1,
-    "modalidadeEnsino": 1,
-    "nivelAcademico": 1,
-    "areaCine": "Computação e TIC"
+    "nomeCine": "Ciência da computação",
+    "idCursoCine": "0612",
+    "areaGeral": { "id": "06", "nome": "Computação e TIC" },
+    "areaEspecifica": { "id": "061", "nome": "Computação e TIC" },
+    "areaDetalhada": { "id": "0612", "nome": "Ciência da computação" },
+    "tipoGrauAcademico": "Bacharelado",
+    "tipoModalidadeEnsino": "Presencial",
+    "tipoNivelAcademico": "Graduação",
+    "indicadorGratuito": true
   },
   "indicadoresAluno": {
-    "ingressantes": 120,
-    "matriculados": 450,
-    "concluintes": 60
+    "vagas": 100,
+    "inscritos": 340,
+    "ingressantes": 88,
+    "matriculas": 310,
+    "concluintes": 42
   },
-  "indicadoresDeficienciaAluno": {
-    "alunosDeficiencia": 15,
-    "ingressantesDeficiencia": 5,
-    "matriculadosDeficiencia": 12,
-    "concluintesDeficiencia": 2
+  "indicadoresDeficiencia": {
+    "alunos": 12,
+    "ingressantes": 4,
+    "matriculas": 10,
+    "concluintes": 2,
+    "reservaVaga": {
+      "ingressantes": 3,
+      "matriculas": 7,
+      "concluintes": 1
+    }
   },
   "indicadoresPermanencia": {
-    "apoioSocial": 40,
-    "atividadeExtracurricular": 25,
-    "mobilidadeAcademica": 2,
-    "parfor": 0,
-    "reservasVagas": [
-      {
-        "tipoReserva": "RVPDEF",
-        "ingressantes": 3,
-        "matriculados": 8,
-        "concluintes": 1
-      }
-    ]
+    "situacao": {
+      "trancada": 5,
+      "desvinculada": 8,
+      "transferida": 2,
+      "falecidos": 0
+    },
+    "apoioSocial": {
+      "alunos": 40,
+      "ingressantes": 12,
+      "matriculas": 35,
+      "concluintes": 8
+    },
+    "atividadeExtracurricular": { "alunos": 20, "ingressantes": 5, "matriculas": 18, "concluintes": 4 },
+    "mobilidadeAcademica": { "alunos": 1, "ingressantes": 0, "matriculas": 1, "concluintes": 0 },
+    "parfor": { "alunos": 0, "ingressantes": 0, "matriculas": 0, "concluintes": 0 }
   },
   "sisu": {
-    "inscricoesTotal": 1000,
-    "aprovadosRegular": 120,
-    "matriculadosFinal": 80,
-    "inscricoesPcd": 100,
-    "aprovadosPcdRegular": 20,
-    "matriculadosPcdFinal": 8,
-    "notaCandidatoMediaGeral": 670.5,
-    "notaCorteMediaRegular": 650.2,
-    "notaCandidatoMediaPcd": 620.3,
-    "notaCorteMediaPcdRegular": 600.0
+    "hasMatch": true,
+    "siglaUfIes": "PB",
+    "inscricoesTotal": 980,
+    "inscricoesPcd": 45,
+    "aprovadosRegular": 95,
+    "aprovadosPcd": 18,
+    "matriculadosFinal": 76,
+    "matriculadosPcdFinal": 12,
+    "notaCandidatoMediaGeral": 672.4,
+    "notaCandidatoMediaPcd": 634.8,
+    "notaCorteMediaGeral": 651.2,
+    "notaCorteMediaPcd": 618.5,
+    "demografia": {
+      "porSexo": [
+        { "sexo": "M", "inscricoes": 580, "inscricoes_pcd": 28, "aprovados_pcd": 11, "matriculados_pcd": 7 },
+        { "sexo": "F", "inscricoes": 400, "inscricoes_pcd": 17, "aprovados_pcd": 7,  "matriculados_pcd": 5 }
+      ],
+      "porFaixaEtaria": [
+        { "faixa_etaria": "18-24", "inscricoes": 740, "inscricoes_pcd": 30, "aprovados_pcd": 14, "matriculados_pcd": 9 },
+        { "faixa_etaria": "25-29", "inscricoes": 150, "inscricoes_pcd": 10, "aprovados_pcd": 3,  "matriculados_pcd": 2 }
+      ],
+      "porMunicipio": [
+        { "id_municipio_candidato": "2507507", "uf": "PB", "inscricoes": 420, "inscricoes_pcd": 20, "aprovados_pcd": 9, "matriculados_pcd": 6 },
+        { "id_municipio_candidato": "2504009", "uf": "PB", "inscricoes": 180, "inscricoes_pcd": 8,  "aprovados_pcd": 3, "matriculados_pcd": 2 }
+      ]
+    }
+  },
+  "metricasCalculadas": {
+    "percentualMatriculasPcd": 3.23,
+    "taxaConclusaoGeral": 47.73,
+    "taxaConclusaoPcd": 50.0,
+    "taxaPerdaGeral": 52.27,
+    "taxaPerdaPcd": 50.0
+  },
+  "etlMetadata": {
+    "source": ["cursos", "ies", "sisu"],
+    "loadedAt": "2025-07-07T12:00:00",
+    "yearRange": { "start": 2022, "end": 2022 }
   }
 }
 ```
 
 ## Resumo da Implementação Atual
 
-A implementação atual já validou o acesso local ao BigQuery e criou as tabelas de staging no dataset do projeto.
+A implementação carrega os dados das fontes públicas do BigQuery diretamente para o MongoDB e constrói a coleção analítica principal a partir das três coleções intermediárias.
 
-### Dataset de Destino
+### Coleções no MongoDB
 
 ```text
-Projeto: higher-education-disability
-Dataset: ppgti_etl
+cursos            → dados do Censo da Educação Superior, tabela curso (ano = 2022)
+ies               → dados do Censo da Educação Superior, tabela IES (ano = 2022)
+sisu              → microdados do SISU (ano = 2022)
+gold_cursos_sisu  → coleção analítica principal, construída a partir das três acima
 ```
 
-### Tabelas de Staging
+### Fontes de Origem no BigQuery
 
 ```text
-stg_sisu_microdados
-stg_censo_curso
-stg_censo_ies
-stg_censo_dicionario
-```
-
-### Tabelas de Origem
-
-```text
-basedosdados.br_mec_sisu.microdados
 basedosdados.br_inep_censo_educacao_superior.curso
 basedosdados.br_inep_censo_educacao_superior.ies
-basedosdados.br_inep_censo_educacao_superior.dicionario
+basedosdados.br_mec_sisu.microdados
 ```
 
-### Script Utilizado
+### Scripts Utilizados
 
 ```text
-scripts/create_staging_tables.py
+src/mongo/load_dados.py          → carrega cursos, ies e sisu do BigQuery para o MongoDB
+src/mongo/build_gold_cursos_sisu.py → constrói gold_cursos_sisu com embedding e métricas calculadas
+src/mongo/consultas.py           → executa as 8 consultas analíticas no MongoDB
 ```
 
-Esse script executa as seguintes etapas:
+### Etapas do Processo
+
+**Etapa 1 — Carga das coleções brutas:**
+
+```bash
+python src/mongo/load_dados.py --table all --drop-existing
+```
+
+Este script executa as seguintes etapas:
 
 1. lê as variáveis de ambiente do arquivo `.env`;
 2. conecta ao BigQuery usando credenciais locais ou service account;
-3. cria ou substitui as tabelas de staging em `higher-education-disability.ppgti_etl`;
-4. copia os registros das tabelas públicas da Base dos Dados;
-5. aplica os filtros definidos pelo projeto;
-6. valida a contagem de registros na origem e no destino;
-7. confirma se a cópia para staging foi concluída com sucesso.
+3. executa as queries com filtro `WHERE ano = 2022`;
+4. insere os documentos no MongoDB em lotes;
+5. cria os índices de suporte em cada coleção.
+
+**Etapa 2 — Construção da coleção analítica:**
+
+```bash
+python src/mongo/build_gold_cursos_sisu.py --drop-existing
+```
+
+Este script executa as seguintes etapas:
+
+1. carrega o índice de IES em memória (dicionário por `(ano, id_ies)`);
+2. executa um aggregation pipeline no MongoDB sobre a coleção `sisu`, agrupando por `(ano, id_ies, id_curso)`;
+3. itera sobre a coleção `cursos` em streaming;
+4. para cada curso, realiza o join com IES e SISU via dicionário em memória;
+5. monta o documento `gold_cursos_sisu` com embedding de IES, curso, indicadores, bloco SISU e métricas calculadas;
+6. persiste os documentos via `bulk_write` com upsert em lotes;
+7. aplica o `$jsonSchema` validator na coleção;
+8. cria 8 índices, incluindo o índice ESR composto para análises de PcD.
 
 ### Observação de Segurança
 
-As tabelas públicas do projeto `basedosdados` nunca são modificadas.
-
-O script apenas lê as tabelas de origem e escreve no dataset de destino:
-
-```text
-higher-education-disability.ppgti_etl
-```
-
-O processo de staging utiliza:
-
-```sql
-CREATE OR REPLACE TABLE destino AS
-SELECT ...
-FROM origem;
-```
-
-Somente as tabelas de destino são criadas ou substituídas.
+As tabelas públicas do BigQuery nunca são modificadas. Os scripts apenas leem as tabelas de origem e escrevem no MongoDB local ou em nuvem configurado no `.env`.
 
 ## 7. Dashboard Streamlit e API REST
 
@@ -824,7 +875,7 @@ Alem do pipeline ETL, o projeto possui uma camada de visualizacao em Streamlit e
 ### Pre-requisitos
 
 - MongoDB rodando localmente, via Docker ou em ambiente cloud.
-- Banco `higher_education` com a colecao principal `gold_course_indicators` carregada.
+- Banco `higher_education` com a colecao principal `gold_cursos_sisu` carregada (executar as etapas 1 e 2 descritas em **Resumo da Implementação Atual**).
 - Python 3.11+.
 - Ambiente virtual Python recomendado.
 
@@ -835,14 +886,8 @@ A partir da raiz do projeto:
 ```bash
 cd dashboard
 python -m venv .venv
-.venv\Scripts\activate
+source .venv/bin/activate   # Linux/macOS
 pip install -r requirements.txt
-```
-
-No Linux/macOS, a ativacao do ambiente virtual fica:
-
-```bash
-source .venv/bin/activate
 ```
 
 ### Executar a API REST
@@ -851,20 +896,14 @@ A API usa FastAPI e expoe um endpoint para cada pergunta analitica, alem de heal
 
 ```bash
 cd dashboard
-.venv\Scripts\python -m uvicorn api:app --host 127.0.0.1 --port 8000
-```
-
-No Linux/macOS:
-
-```bash
 python -m uvicorn api:app --host 127.0.0.1 --port 8000
 ```
 
 Portas e URLs da API:
 
 ```text
-API:        http://127.0.0.1:8000
-Docs API:   http://127.0.0.1:8000/docs
+API:         http://127.0.0.1:8000
+Docs API:    http://127.0.0.1:8000/docs
 Healthcheck: http://127.0.0.1:8000/health
 ```
 
@@ -875,7 +914,7 @@ curl http://127.0.0.1:8000/health
 curl http://127.0.0.1:8000/api/v1/perguntas/1
 ```
 
-Endpoints principais:
+Endpoints disponíveis:
 
 ```text
 GET  /health
@@ -1009,22 +1048,11 @@ Observacao: os codigos acima refletem os valores encontrados nas colecoes carreg
 
 ### Executar o Dashboard Streamlit
 
-Em outro terminal, a partir da raiz do projeto:
-
-```bash
-dashboard\.venv\Scripts\python -m streamlit run dashboard\app.py --server.port 8501
-```
-
-Ou, entrando na pasta `dashboard`:
+Em outro terminal, a partir da pasta `dashboard`:
 
 ```bash
 cd dashboard
-.venv\Scripts\python -m streamlit run app.py --server.port 8501
-```
-
-No Linux/macOS:
-
-```bash
+source .venv/bin/activate
 python -m streamlit run app.py --server.port 8501
 ```
 
@@ -1045,8 +1073,8 @@ Dashboard: http://127.0.0.1:8501
 ### Observacoes
 
 - O dashboard e a API leem diretamente do MongoDB configurado no `.env`.
-- A colecao principal esperada e `gold_course_indicators`.
-- A colecao `sisu_aggregated` e usada principalmente para demonstrar consultas com `$lookup`; se ela estiver vazia, os endpoints continuam funcionando, mas as respostas de lookup podem vir sem correspondencias.
+- A colecao principal esperada e `gold_cursos_sisu`.
+- A colecao `sisu` e usada para demonstrar consultas com `$lookup` (Pergunta 8 com `usar_lookup=true`) e consultas com `$elemMatch` em dados demograficos; se ela estiver vazia, os endpoints continuam funcionando, mas as respostas de lookup podem vir sem correspondencias.
 - Se alterar o `.env`, reinicie a API e o dashboard para recarregar as variaveis.
 
 ## Arquivos de Suporte
